@@ -2,11 +2,18 @@ import express from 'express';
 import "dotenv/config";
 import appRouter from './appRouter.js';
 import { connectDB } from './config/db.js';
+import cors from "cors";
 
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true}));
+
+// CORS Connection
+app.use(cors({
+    origin: ["http://localhost:5173"],
+    credentials: true,
+}))
 
 // Connect to Database
 connectDB();

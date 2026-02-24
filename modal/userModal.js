@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
-import "./dotenv/config.js";
+import "dotenv/config";
 
 const userSchema = mongoose.Schema({
     name: {
@@ -68,5 +68,5 @@ userSchema.methods.generateRefreshToken = function () {
   });
 };
 
-const UserModal = mongoose.model("User", userSchema);
+const UserModal = mongoose.model("users", userSchema);
 export default UserModal;

@@ -1,21 +1,21 @@
-import mongoose from "mongoose";
-import jwt from "jsonwebtoken";
 import "dotenv/config";
+import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 const userSchema = mongoose.Schema({
-    name: {
-        type: String,
-        required: [true, 'Name is required'],
-        trim: true,
-        maxlength: [50, 'Name cannot exceed 50 characters'],
-    },
-    password: {
-            type: String,
+  name: {
+    type: String,
+    required: [true, 'Name is required'],
+    trim: true,
+    maxlength: [50, 'Name cannot exceed 50 characters'],
+  },
+  password: {
+    type: String,
     required: [true, 'Password is required'],
     minlength: [6, 'Password must be at least 6 characters long'],
     select: false, // Don't include password in queries by default
-    },
-      email: {
+  },
+  email: {
     type: String,
     required: [true, 'Email is required'],
     unique: true,

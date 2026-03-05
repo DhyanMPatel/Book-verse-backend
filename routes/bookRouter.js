@@ -1,5 +1,5 @@
 import express from "express";
-import { getBookController, createBookController } from "../controllers/bookController.js";
+import { getBookController, createBookController, getBookDetailsController } from "../controllers/bookController.js";
 import { authenticateToken, authorizeRoles } from "../middleware/authMiddleware.js";
 import { upload } from "../utils/fileUpload.js";
 
@@ -15,5 +15,9 @@ bookRouter.route("/create").post(authenticateToken, upload.fields([
 ]), authorizeRoles('admin'), createBookController);
 // bookRouter.route("/update/:id").put(authenticateToken, authorizeRoles('admin'), updateBookController);
 // bookRouter.route("/delete/:id").delete(authenticateToken, authorizeRoles('admin'), deleteBookController);
+
+
+// Book Details routes
+bookRouter.route("/details/:id").get(getBookDetailsController)
 
 export default bookRouter;

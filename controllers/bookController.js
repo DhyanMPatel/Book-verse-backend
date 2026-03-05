@@ -17,7 +17,7 @@ export const getBookController = async (req, res) => {
     } catch (error) {
         // res.status(500).json({ message: error.message });
 
-        APIResponse.errorResponse(res, error.message, 500);
+        APIResponse.errorResponse(res, error?.message || error, 500);
     }
 };
 
@@ -107,3 +107,22 @@ export const createBookController = async (req, res) => {
 //         res.status(500).json({ message: error.message });
 //     }
 // }
+
+
+// Book Details
+export const getBookDetailsController = async (req, res) => {
+    try {
+        const id = req.params.id;
+
+        const bookDetail = await BookModal.findById(id)
+        
+        if(!bookDetail) {
+            APIResponse.errorResponse(res, "Book not found", 404)
+        }
+
+        APIResponse.successResponse(res, {bookDetail}, "Book Details Fetched Successfully", 200);
+
+    } catch (err) {
+        APIResponse.errorResponse(res, err?.message || err, 500)
+    }
+}

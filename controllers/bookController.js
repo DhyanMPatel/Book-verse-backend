@@ -4,12 +4,30 @@ import APIResponse from "../utils/APIResponse.js";
 export const getBookController = async (req, res) => {
     try {
         const Books = await BookModal.find();
-        // res.status(200).json(Books);
+
+        const booksData = Books.map((book) => {
+            return {
+                id: book._id,
+                title: book.title,
+                author: book.author,
+                description: book.description,
+                category: book.category,
+                price: book.price,
+                discount: book.discount,
+                coverImage: book.coverImage,
+                avgRating: book.avgRating || 0,
+                totalReviews: book.totalReviews || 0,
+            }
+        })
+
+        if (booksData.length === 0) {
+            return APIResponse.successResponse(res, [], "No books found", 200)
+        }
 
         APIResponse.successResponse(
             res,
             {
-                books: Books,
+                books: booksData,
             },
             "Books fetched successfully",
             200,
@@ -29,6 +47,7 @@ export const createBookController = async (req, res) => {
             description,
             category,
             price,
+            discount,
             stock,
             format,
             pages,
@@ -42,13 +61,13 @@ export const createBookController = async (req, res) => {
         const coverImagePath = req.files?.coverImage?.[0]?.path;
         const filePath = req.files?.file?.[0]?.path;
 
-        console.log("Cover Image Path:", coverImagePath);
-        console.log("File Path:", filePath);
+        // Get authenticated user ID
+        const userId = req.user.id;
 
         // Validate required fields
-        // if (!title || !author || !description || !category || !price || !format || !pages || !language || !publisher || !publishedDate) {
-        //     return APIResponse.errorResponse(res, "Missing required fields", 400);
-        // }
+        if (!title || !author || !description || !category || !price || !coverImagePath || !filePath || !format || !pages || !language || !publisher || !discount || !publishedDate) {
+            return APIResponse.errorResponse(res, "Missing required fields", 400);
+        }
 
         // Create new book
         const newBook = new BookModal({
@@ -57,6 +76,7 @@ export const createBookController = async (req, res) => {
             description,
             category,
             price: parseFloat(price),
+            discount: parseInt(discount || 0),
             coverImage: coverImagePath,
             fileUrl: filePath,
             format,
@@ -66,6 +86,8 @@ export const createBookController = async (req, res) => {
             publisher,
             publishedDate: new Date(publishedDate),
             isbn: isbn || undefined,
+            createdBy: userId,
+            updatedBy: userId,
         });
 
         const savedBook = await newBook.save();
@@ -83,6 +105,7 @@ export const createBookController = async (req, res) => {
         APIResponse.errorResponse(res, error.message, 500);
     }
 };
+
 // export const patchBookController = async (req, res) => {
 //     try {
 //         const Books = await BookModal.find();
@@ -115,12 +138,33 @@ export const getBookDetailsController = async (req, res) => {
         const id = req.params.id;
 
         const bookDetail = await BookModal.findById(id)
-        
-        if(!bookDetail) {
+
+        const bookDetailData = {
+            id: bookDetail._id,
+            title: bookDetail.title,
+            author: bookDetail.author,
+            description: bookDetail.description,
+            category: bookDetail.category,
+            price: bookDetail.price,
+            discount: bookDetail.discount,
+            coverImage: bookDetail.coverImage,
+            fileUrl: bookDetail.fileUrl,
+            format: bookDetail.format,
+            pages: bookDetail.pages,
+            stock: bookDetail.stock,
+            language: bookDetail.language,
+            publisher: bookDetail.publisher,
+            publishedDate: bookDetail.publishedDate,
+            isbn: bookDetail.isbn,
+            avgRating: bookDetail.avgRating || 0,
+            totalReviews: bookDetail.totalReviews || 0,
+        }
+
+        if (!bookDetail) {
             APIResponse.errorResponse(res, "Book not found", 404)
         }
 
-        APIResponse.successResponse(res, {bookDetail}, "Book Details Fetched Successfully", 200);
+        APIResponse.successResponse(res, { bookDetailData }, "Book Details Fetched Successfully", 200);
 
     } catch (err) {
         APIResponse.errorResponse(res, err?.message || err, 500)

@@ -1,7 +1,8 @@
 import express from "express";
-import { getBookController, createBookController, getBookDetailsController } from "../controllers/bookController.js";
+import { createBookController, getBookController, getBookDetailsController } from "../controllers/bookController.js";
 import { authenticateToken, authorizeRoles } from "../middleware/authMiddleware.js";
 import { upload } from "../utils/fileUpload.js";
+import ReviewRouter from "./reviewRouter.js";
 
 const bookRouter = express.Router();
 
@@ -19,5 +20,6 @@ bookRouter.route("/create").post(authenticateToken, upload.fields([
 
 // Book Details routes
 bookRouter.route("/details/:id").get(getBookDetailsController)
+
 
 export default bookRouter;

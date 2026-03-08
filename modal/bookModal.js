@@ -31,6 +31,11 @@ const bookSchema = mongoose.Schema({
         required: [true, "Price is required"],
         min: [0, "Price cannot be negative"]
     },
+    discount: {
+        type: Number,
+        required: [true, "Discount is required"],
+        min: [0, "Discount cannot be negative"],
+    },
     coverImage: {
         type: String,
         required: [true, "Cover Image is required"],
@@ -82,10 +87,31 @@ const bookSchema = mongoose.Schema({
         type: Date,
         required: [true, "Published date is required"]
     },
+    avgRating: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 5
+    },
+    totalReviews: {
+        type: Number,
+        default: 0,
+        min: 0
+    },
     isActive: {
         type: Boolean,
         default: true
-    }
+    },
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "users",
+        required: true
+    },
+    updatedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "users",
+        required: true
+    },
 }, {
     timestamps: true
 });

@@ -1,5 +1,6 @@
 import BookModal from "../modal/bookModal.js";
 import APIResponse from "../utils/APIResponse.js";
+import "dotenv/config";
 
 export const getBookController = async (req, res) => {
     try {
@@ -14,7 +15,7 @@ export const getBookController = async (req, res) => {
                 category: book.category,
                 price: book.price,
                 discount: book.discount,
-                coverImage: book.coverImage,
+                coverImage: `${process.env.BASE_URL}/${book.coverImage}`,
                 avgRating: book.avgRating || 0,
                 totalReviews: book.totalReviews || 0,
             }
@@ -147,8 +148,8 @@ export const getBookDetailsController = async (req, res) => {
             category: bookDetail.category,
             price: bookDetail.price,
             discount: bookDetail.discount,
-            coverImage: bookDetail.coverImage,
-            fileUrl: bookDetail.fileUrl,
+            coverImage: `${process.env.BASE_URL}/${bookDetail.coverImage}`,
+            fileUrl: `${process.env.BASE_URL}/${bookDetail.fileUrl}`,
             format: bookDetail.format,
             pages: bookDetail.pages,
             stock: bookDetail.stock,

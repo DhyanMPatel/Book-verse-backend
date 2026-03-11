@@ -3,6 +3,7 @@ import { createBookController, getBookController, getBookDetailsController } fro
 import { authenticateToken, authorizeRoles } from "../middleware/authMiddleware.js";
 import { upload } from "../utils/fileUpload.js";
 import ReviewRouter from "./reviewRouter.js";
+import { processFilePaths } from "../halpers/relativePathGetter.js";
 
 const bookRouter = express.Router();
 
@@ -13,7 +14,7 @@ bookRouter.route("/all").get(getBookController);
 bookRouter.route("/create").post(authenticateToken, upload.fields([
     { name: 'coverImage', maxCount: 1 },
     { name: 'file', maxCount: 1 }
-]), authorizeRoles('admin'), createBookController);
+]), processFilePaths, authorizeRoles('admin'), createBookController);
 // bookRouter.route("/update/:id").put(authenticateToken, authorizeRoles('admin'), updateBookController);
 // bookRouter.route("/delete/:id").delete(authenticateToken, authorizeRoles('admin'), deleteBookController);
 

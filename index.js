@@ -1,13 +1,18 @@
 import express from 'express';
-import "dotenv/config";
+import dotenv from "dotenv";
+import dotenvExpand from "dotenv-expand";
 import appRouter from './appRouter.js';
 import { connectDB } from './config/db.js';
 import cors from "cors";
 
 const app = express();
+const env = dotenv.config();
+dotenvExpand.expand(env);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true}));
+
+app.use("/files", express.static("files"))
 
 // CORS Connection
 app.use(cors({

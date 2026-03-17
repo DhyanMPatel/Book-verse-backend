@@ -13,12 +13,12 @@ const CategoryRouter = express.Router();
 
 // Get all categories & create category
 CategoryRouter.route("/")
-    .get(getAllCategoriesController)
+    .get(authenticateToken, getAllCategoriesController)
     .post(authenticateToken, createCategoryController);
 
 // Get, Update, Delete single category
 CategoryRouter.route("/:categoryId")
-    .get(getCategoryByIdController)
+    .get(authenticateToken, getCategoryByIdController)
    
     .patch(authenticateToken, updateCategoryController)
     .delete(authenticateToken, deleteCategoryController);

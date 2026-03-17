@@ -5,7 +5,8 @@ export const CategorySchema = mongoose.Schema({
         type: String,
         required: true,
         unique: true, // ✅ this is enough
-        trim: true
+        trim: true,
+        lowercase: true
     }
 });
 

@@ -2,33 +2,28 @@ import { CategoryModal } from "../modal/categoryModel.js";
 import APIResponse from "../utils/APIResponse.js";
 import mongoose from "mongoose";
 
-<<<<<<< Updated upstream
-// this 
-=======
-
->>>>>>> Stashed changes
 // ✅ Get all categories (no pagination)
 export const getAllCategoriesController = async (req, res) => {
   try {
-    const { search = "" } = req.query;
+    const categories = await CategoryModal.find()
 
-    const query = {
-      category: { $regex: search, $options: "i" },
-    };
+    if (categories.length === 0) {
+      return APIResponse.successResponse(res, [], "No categories found", 200)
+    }
 
-    const categories = await CategoryModal.find(query)
-      .select("_id category")
-      .sort({ _id: -1 })
-      .lean();
+    const categoryData = categories.map((cat) => ({
+      id: cat._id,
+      category: cat.category
+    }))
 
-    return APIResponse.successResponse(
+    APIResponse.successResponse(
       res,
-      { categories },
+      categoryData,
       "Categories fetched successfully",
       200
     );
   } catch (error) {
-    return APIResponse.errorResponse(res, error.message, 500);
+    APIResponse.errorResponse(res, error.message, 500);
   }
 };
 
@@ -37,10 +32,6 @@ export const getAllCategoriesController = async (req, res) => {
 export const getCategoryByIdController = async (req, res) => {
   try {
     const { categoryId } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
-      return APIResponse.errorResponse(res, "Invalid category ID", 400);
-    }
 
     const category = await CategoryModal.findById(categoryId)
       .select("_id category");
@@ -51,7 +42,7 @@ export const getCategoryByIdController = async (req, res) => {
 
     return APIResponse.successResponse(
       res,
-      category,
+      { id: category._id, category: category.category },
       "Category fetched successfully",
       200
     );
@@ -64,13 +55,11 @@ export const getCategoryByIdController = async (req, res) => {
 // ✅ Create category
 export const createCategoryController = async (req, res) => {
   try {
-    let { category } = req.body || {}; // ✅ FIX
+    let { category } = req.body;
 
     if (!category) {
       return APIResponse.errorResponse(res, "Category is required", 400);
     }
-
-    category = category.trim().toLowerCase();
 
     // ✅ Case-insensitive duplicate check
     const existing = await CategoryModal.findOne({
@@ -86,7 +75,7 @@ export const createCategoryController = async (req, res) => {
 
     return APIResponse.successResponse(
       res,
-      { _id: savedCategory._id, category: savedCategory.category },
+      { id: savedCategory._id, category: savedCategory.category },
       "Category created successfully",
       201
     );
@@ -104,14 +93,10 @@ export const createCategoryController = async (req, res) => {
 export const updateCategoryController = async (req, res) => {
   try {
     const { categoryId } = req.params;
-    let { category } = req.body || {}; // ✅ FIX
+    let { category } = req.body;
 
     if (!category) {
       return APIResponse.errorResponse(res, "Category is required", 400);
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
-      return APIResponse.errorResponse(res, "Invalid category ID", 400);
     }
 
     const existing = await CategoryModal.findById(categoryId);
@@ -122,7 +107,7 @@ export const updateCategoryController = async (req, res) => {
 
     category = category.trim().toLowerCase();
 
-    // ✅ Prevent duplicate
+    // ✅ Prevent duplicate (excluding current document)
     const duplicate = await CategoryModal.findOne({
       category: { $regex: `^${category}$`, $options: "i" },
       _id: { $ne: categoryId },
@@ -138,7 +123,7 @@ export const updateCategoryController = async (req, res) => {
 
     return APIResponse.successResponse(
       res,
-      { _id: updated._id, category: updated.category },
+      { id: updated._id, category: updated.category },
       "Category updated successfully",
       200
     );
@@ -152,10 +137,6 @@ export const updateCategoryController = async (req, res) => {
 export const deleteCategoryController = async (req, res) => {
   try {
     const { categoryId } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
-      return APIResponse.errorResponse(res, "Invalid category ID", 400);
-    }
 
     const category = await CategoryModal.findById(categoryId);
 

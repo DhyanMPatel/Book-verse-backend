@@ -2,7 +2,11 @@ import { CategoryModal } from "../modal/categoryModel.js";
 import APIResponse from "../utils/APIResponse.js";
 import mongoose from "mongoose";
 
+<<<<<<< Updated upstream
 // this 
+=======
+
+>>>>>>> Stashed changes
 // ✅ Get all categories (no pagination)
 export const getAllCategoriesController = async (req, res) => {
   try {

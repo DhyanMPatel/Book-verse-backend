@@ -2,6 +2,7 @@ import BookModal from "../modal/bookModal.js";
 import APIResponse from "../utils/APIResponse.js";
 import "dotenv/config";
 
+
 export const getBookController = async (req, res) => {
     try {
         const Books = await BookModal.find();
@@ -134,6 +135,7 @@ export const createBookController = async (req, res) => {
 
 
 // Book Details
+
 export const getBookDetailsController = async (req, res) => {
     try {
         const id = req.params.id;

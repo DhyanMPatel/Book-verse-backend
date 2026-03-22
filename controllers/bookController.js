@@ -1,25 +1,28 @@
-import BookModal from "../modal/bookModal.js";
-import APIResponse from "../utils/APIResponse.js";
 import "dotenv/config";
+import BookModal from "../modal/bookModal.js";
+import { CategoryModal } from "../modal/categoryModel.js";
+import APIResponse from "../utils/APIResponse.js";
 
 export const getBookController = async (req, res) => {
     try {
         const Books = await BookModal.find();
 
-        const booksData = Books.map((book) => {
+        
+        const booksData = await Promise.all(Books.map(async (book) => {
+            const Category = await CategoryModal.findById(book.categoryId);
             return {
                 id: book._id,
                 title: book.title,
                 author: book.author,
                 description: book.description,
-                category: book.category,
+                category: Category?.name || book.categoryId || "",
                 price: book.price,
                 discount: book.discount,
                 coverImage: `${process.env.BASE_URL}/${book.coverImage}`,
                 avgRating: book.avgRating || 0,
                 totalReviews: book.totalReviews || 0,
             }
-        })
+        }))
 
         if (booksData.length === 0) {
             return APIResponse.successResponse(res, [], "No books found", 200)
@@ -70,12 +73,18 @@ export const createBookController = async (req, res) => {
             return APIResponse.errorResponse(res, "Missing required fields", 400);
         }
 
+        const categoryData = await CategoryModal.findOne({ name: category.trim().toLowerCase() });
+
+        if (!categoryData) {
+            return APIResponse.errorResponse(res, "Category not Found", 400);
+        }
+
         // Create new book
         const newBook = new BookModal({
             title,
             author,
             description,
-            category,
+            categoryId: categoryData?._id,
             price: parseFloat(price),
             discount: parseInt(discount || 0),
             coverImage: coverImagePath,
@@ -139,13 +148,14 @@ export const getBookDetailsController = async (req, res) => {
         const id = req.params.id;
 
         const bookDetail = await BookModal.findById(id)
+        const category = await CategoryModal.findById(bookDetail.categoryId);
 
         const bookDetailData = {
             id: bookDetail._id,
             title: bookDetail.title,
             author: bookDetail.author,
             description: bookDetail.description,
-            category: bookDetail.category,
+            category: category.name || bookDetail?.categoryId || "",
             price: bookDetail.price,
             discount: bookDetail.discount,
             coverImage: `${process.env.BASE_URL}/${bookDetail.coverImage}`,

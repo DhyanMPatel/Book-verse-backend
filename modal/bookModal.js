@@ -19,12 +19,11 @@ const bookSchema = mongoose.Schema({
         trim: true,
         maxlength: [2000, "Description cannot exceed 2000 characters"]
     },
-    category: {
-        type: String,
+    categoryId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "category",
         required: [true, "Category is required"],
-        enum: ['Fiction', 'Non-Fiction', 'Science', 'Technology', 'Business', 'Self-Help', 'Biography', 'History', 'Romance', 'Mystery', 'Fantasy', 'Knowledge', 'Other'],
         trim: true,
-        maxlength: [50, "Category cannot exceed 50 characters"]
     },
     price: {
         type: Number,

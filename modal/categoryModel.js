@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 export const CategorySchema = mongoose.Schema({
-    category: {
+    name: {
         type: String,
         required: true,
         unique: true, // ✅ this is enough

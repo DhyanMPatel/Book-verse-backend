@@ -13,7 +13,7 @@ export const getAllCategoriesController = async (req, res) => {
 
     const categoryData = categories.map((cat) => ({
       id: cat._id,
-      category: cat.category
+      categoryName: cat.name
     }))
 
     APIResponse.successResponse(
@@ -34,7 +34,7 @@ export const getCategoryByIdController = async (req, res) => {
     const { categoryId } = req.params;
 
     const category = await CategoryModal.findById(categoryId)
-      .select("_id category");
+      .select("_id name");
 
     if (!category) {
       return APIResponse.errorResponse(res, "Category not found", 404);
@@ -42,7 +42,7 @@ export const getCategoryByIdController = async (req, res) => {
 
     return APIResponse.successResponse(
       res,
-      { id: category._id, category: category.category },
+      { id: category._id, categoryName: category.name },
       "Category fetched successfully",
       200
     );
@@ -63,19 +63,19 @@ export const createCategoryController = async (req, res) => {
 
     // ✅ Case-insensitive duplicate check
     const existing = await CategoryModal.findOne({
-      category: { $regex: `^${category}$`, $options: "i" },
+      name: { $regex: `^${category}$`, $options: "i" },
     });
 
     if (existing) {
       return APIResponse.errorResponse(res, "Category already exists", 400);
     }
 
-    const newCategory = new CategoryModal({ category });
+    const newCategory = new CategoryModal({ name: category });
     const savedCategory = await newCategory.save();
 
     return APIResponse.successResponse(
       res,
-      { id: savedCategory._id, category: savedCategory.category },
+      { id: savedCategory._id, categoryName: savedCategory.name },
       "Category created successfully",
       201
     );
@@ -109,7 +109,7 @@ export const updateCategoryController = async (req, res) => {
 
     // ✅ Prevent duplicate (excluding current document)
     const duplicate = await CategoryModal.findOne({
-      category: { $regex: `^${category}$`, $options: "i" },
+      name: { $regex: `^${category}$`, $options: "i" },
       _id: { $ne: categoryId },
     });
 
@@ -117,13 +117,13 @@ export const updateCategoryController = async (req, res) => {
       return APIResponse.errorResponse(res, "Category already exists", 400);
     }
 
-    existing.category = category;
+    existing.name = category;
 
     const updated = await existing.save();
 
     return APIResponse.successResponse(
       res,
-      { id: updated._id, category: updated.category },
+      { id: updated._id, categoryName: updated.name },
       "Category updated successfully",
       200
     );

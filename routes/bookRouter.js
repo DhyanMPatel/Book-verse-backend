@@ -1,5 +1,5 @@
 import express from "express";
-import { createBookController, getBookController, getBookDetailsController } from "../controllers/bookController.js";
+import { createBookController, getBookController, getBookDetailsController ,deleteBookController} from "../controllers/bookController.js";
 import { authenticateToken, authorizeRoles } from "../middleware/authMiddleware.js";
 import { upload } from "../utils/fileUpload.js";
 import ReviewRouter from "./reviewRouter.js";
@@ -16,7 +16,8 @@ bookRouter.route("/create").post(authenticateToken, upload.fields([
     { name: 'file', maxCount: 1 }
 ]), processFilePaths, authorizeRoles('admin'), createBookController);
 // bookRouter.route("/update/:id").put(authenticateToken, authorizeRoles('admin'), updateBookController);
-// bookRouter.route("/delete/:id").delete(authenticateToken, authorizeRoles('admin'), deleteBookController);
+
+bookRouter.route("/delete/:id").delete(authenticateToken, authorizeRoles('admin'), deleteBookController);
 
 
 // Book Details routes

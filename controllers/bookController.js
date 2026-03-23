@@ -3,6 +3,7 @@ import BookModal from "../modal/bookModal.js";
 import { CategoryModal } from "../modal/categoryModel.js";
 import APIResponse from "../utils/APIResponse.js";
 
+
 export const getBookController = async (req, res) => {
     try {
         const Books = await BookModal.find();
@@ -143,6 +144,7 @@ export const createBookController = async (req, res) => {
 
 
 // Book Details
+
 export const getBookDetailsController = async (req, res) => {
     try {
         const id = req.params.id;
@@ -181,3 +183,40 @@ export const getBookDetailsController = async (req, res) => {
         APIResponse.errorResponse(res, err?.message || err, 500)
     }
 }
+
+
+export const deleteBookController = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Validate ID
+        if (!id) {
+            return APIResponse.errorResponse(res, "Book ID is required", 400);
+        }
+
+        // Find book
+        const book = await BookModal.findById(id);
+
+        if (!book) {
+            return APIResponse.errorResponse(res, "Book not found", 404);
+        }
+
+        // Optional: delete files from storage (if needed)
+        // Example (if using local storage):
+        // fs.unlinkSync(book.coverImage);
+        // fs.unlinkSync(book.fileUrl);
+
+        // Delete book
+        await BookModal.findByIdAndDelete(id);
+
+        return APIResponse.successResponse(
+            res,
+            null,
+            "Book deleted successfully",
+            200
+        );
+    } catch (error) {
+        console.error("Error deleting book:", error);
+        return APIResponse.errorResponse(res, error.message, 500);
+    }
+};

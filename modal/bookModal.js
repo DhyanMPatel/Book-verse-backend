@@ -35,11 +35,11 @@ const bookSchema = mongoose.Schema({
         required: [true, "Discount is required"],
         min: [0, "Discount cannot be negative"],
     },
-    coverImage: {
-        type: String,
-        required: [true, "Cover Image is required"],
-        trim: true,
-    },
+        coverImage: {
+            type: String,
+            required: [true, "Cover Image is required"],
+            trim: true,
+        },
     fileUrl: {
         type: String,
         required: [true, "File URL is required"],
@@ -48,7 +48,7 @@ const bookSchema = mongoose.Schema({
     format: {
         type: String,
         enum: ["pdf", "epub", "mobi", "audiobook"],
-        required: [true, "Format is required"],
+        required: [false, ],
         default: "pdf",
         trim: true
     },

@@ -6,6 +6,8 @@ export const CartDataOrganizer = (data) => {
             bookId: item.bookId,
             title: item.title,
             price: item.price,
+            coverImage: item.coverImage,
+            author: item.author,
             quantity: item.quantity
         })),
         createdAt: data.createdAt,

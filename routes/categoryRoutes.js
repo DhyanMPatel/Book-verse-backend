@@ -9,18 +9,18 @@ import {
 
 import { authenticateToken } from '../middleware/authMiddleware.js';
 
-const CategoryRouter = express.Router();
+const categoryRouter = express.Router();
 
 // Get all categories & create category
-CategoryRouter.route("/")
+categoryRouter.route("/")
     .get(authenticateToken, getAllCategoriesController)
     .post(authenticateToken, createCategoryController);
 
 // Get, Update, Delete single category
-CategoryRouter.route("/:categoryId")
+categoryRouter.route("/:categoryId")
     .get(authenticateToken, getCategoryByIdController)
-   
+
     .patch(authenticateToken, updateCategoryController)
     .delete(authenticateToken, deleteCategoryController);
 
-export default CategoryRouter;
+export default categoryRouter;

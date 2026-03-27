@@ -40,7 +40,9 @@ const userSchema = mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true,
-  }
+  },
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
 })
 
 // Instance method to generate JWT token

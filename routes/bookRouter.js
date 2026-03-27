@@ -2,7 +2,6 @@ import express from "express";
 import { createBookController, getBookController, getBookDetailsController ,deleteBookController,updateBookController} from "../controllers/bookController.js";
 import { authenticateToken, authorizeRoles } from "../middleware/authMiddleware.js";
 import { upload } from "../utils/fileUpload.js";
-import ReviewRouter from "./reviewRouter.js";
 import { processFilePaths } from "../halpers/relativePathGetter.js";
 
 const bookRouter = express.Router();

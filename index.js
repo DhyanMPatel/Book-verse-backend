@@ -1,16 +1,18 @@
-import express from 'express';
+import cors from "cors";
 import dotenv from "dotenv";
 import dotenvExpand from "dotenv-expand";
+import express from 'express';
 import appRouter from './appRouter.js';
 import { connectDB } from './config/db.js';
-import cors from "cors";
 
 const app = express();
-const env = dotenv.config();
+const env = dotenv.config({
+    path: process.env.Node_Env ? `.env.${process.env.Node_Env || "development"}` : ".env"
+});
 dotenvExpand.expand(env);
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true}));
+app.use(express.urlencoded({ extended: true }));
 
 app.use("/files", express.static("files"))
 
@@ -23,7 +25,7 @@ app.use(cors({
 // Connect to Database
 connectDB();
 
-app.use("/api",appRouter);
+app.use("/api", appRouter);
 
 app.use((req, res) => {
     res.status(404).json({

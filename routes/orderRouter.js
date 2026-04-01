@@ -1,8 +1,9 @@
 import express from 'express';
-import { orderController } from '../controllers/orderController';
+import { createOrderController, verifyPaymentController } from '../controllers/orderController.js';
 
 const orderRouter = express.Router();
 
-orderRouter.route("/create").post(orderController)
+orderRouter.route("/create").post(createOrderController)
+orderRouter.route("/verify-payment").post(verifyPaymentController)
 
 export default orderRouter;

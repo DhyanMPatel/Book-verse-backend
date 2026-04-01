@@ -1,9 +1,7 @@
-import React from 'react'
-import APIResponse from '../utils/APIResponse';
-import Razorpay from 'razorpay';
-import { razorpay } from '../config/razorPay';
+import { razorpay } from '../config/razorPay.js';
+import APIResponse from '../utils/APIResponse.js';
 
-export const orderController = async (req, res) => {
+export const createOrderController = async (req, res) => {
     try {
         const { userId, cartItems, totalAmount } = req.body;
 
@@ -18,7 +16,7 @@ export const orderController = async (req, res) => {
 
         const order = await razorpay.orders.create(options);
 
-        APIResponse.successResponse(res, { orderId: order.id }, "Order created successfully", 200);
+        APIResponse.successResponse(res, { orderId: order.id, amount: order.amount }, "Order created successfully", 200);
 
 
         // Implement order creation logic here
@@ -28,3 +26,15 @@ export const orderController = async (req, res) => {
     }
 }
 
+export const verifyPaymentController = async (req, res) => {
+    try {
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+        console.log(razorpay_order_id, "Order Id, ", razorpay_payment_id, "Payment Id, ", razorpay_signature, "Signature")
+
+
+    } catch (err) {
+        console.error("Payment verification error:", err);
+        return APIResponse.errorResponse(res, "Internal server error during payment verification", 500)
+    }
+}

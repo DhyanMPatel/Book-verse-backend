@@ -98,7 +98,7 @@ export const registerUserController = async (req, res) => {
         });
 
 
-        const frontendURL = process.env.FRONTEND_URL || "http://localhost:5173";
+        const frontendURL = process.env.FRONTEND_URL || "http://localhost:3000";
         const exploreLink = `${frontendURL}/search`;
 
         const emailResult = await emailService.WelcomeEmail(user.email, user.name, exploreLink);
@@ -147,7 +147,7 @@ export const forgotPasswordController = async (req, res) => {
         await user.save();
 
         // Construct reset link with frontend URL
-        const frontendURL = process.env.FRONTEND_URL || "http://localhost:5173";
+        const frontendURL = process.env.FRONTEND_URL || "http://localhost:3000";
         const resetLink = `${frontendURL}/reset-password/${token}`;
 
         // Send reset password email

@@ -36,5 +36,5 @@ app.use((req, res) => {
 })
 
 app.listen(process.env.PORT, () => {
-    console.log(`Server is running on port http://localhost:${process.env.PORT}/api`);
+    console.log(`Server is running on ${process.env.BASE_URL}/api`);
 })

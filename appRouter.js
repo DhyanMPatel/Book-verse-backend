@@ -5,6 +5,7 @@ import reviewRouter from './routes/reviewRouter.js';
 import categoryRouter from './routes/categoryRoutes.js';
 import userRouter from './routes/userRouter.js';
 import cartRouter from './routes/cartRouter.js';
+import APIResponse from './utils/APIResponse.js';
 
 
 const appRouter = express();
@@ -15,6 +16,11 @@ appRouter.use("/reviews", reviewRouter);
 appRouter.use("/categories", categoryRouter);
 appRouter.use("/user", userRouter);
 appRouter.use("/cart", cartRouter);
+
+// Test route
+appRouter.get("/test", (req, res) => {
+    APIResponse.successResponse(res, null, "API is working fine!", 200);
+});
 
 
 export default appRouter;

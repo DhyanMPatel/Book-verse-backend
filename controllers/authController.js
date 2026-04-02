@@ -97,6 +97,16 @@ export const registerUserController = async (req, res) => {
             maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
         });
 
+
+        const frontendURL = process.env.FRONTEND_URL || "http://localhost:3000";
+        const exploreLink = `${frontendURL}/search`;
+
+        const emailResult = await emailService.WelcomeEmail(user.email, user.name, exploreLink);
+        if (!emailResult.success) {
+            console.error("Failed to send welcome email:", emailResult.error);
+            // Not critical, so we won't return an error response here
+        }
+
         return APIResponse.successResponse(res, {
             user: userResponse,
             authToken,
@@ -137,7 +147,7 @@ export const forgotPasswordController = async (req, res) => {
         await user.save();
 
         // Construct reset link with frontend URL
-        const frontendURL = process.env.FRONTEND_URL || "http://localhost:5173";
+        const frontendURL = process.env.FRONTEND_URL || "http://localhost:3000";
         const resetLink = `${frontendURL}/reset-password/${token}`;
 
         // Send reset password email

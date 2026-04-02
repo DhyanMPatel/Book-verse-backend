@@ -6,9 +6,11 @@ export const CartDataOrganizer = (data) => {
             bookId: item.bookId,
             title: item.title,
             price: item.price,
-                discount: item.discount,    
-            coverImage: item.coverImage,
+            coverImage: `${process.env.BASE_URL}/${item.coverImage}`,
             author: item.author,
+            category: item.category,
+            discount: item.discount,
+            avgRating: item.avgRating,
             quantity: item.quantity
         })),
         createdAt: data.createdAt,

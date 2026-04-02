@@ -1,0 +1,95 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title Welcome to Book Verse
+    style.
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background-color: #f4f4f4;
+      }
+      .container {
+        max-width: 600px;
+        margin: 10px auto;
+        background-color: #ffffff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #ffffff;
+        padding: 30px 20px;
+        text-align: center;
+      }
+      .header h1 {
+        font-size: 28px;
+        font-weight: 600;
+        margin: 0;
+      }
+      .logo {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+      .content {
+        padding: 40px 30px;
+      }
+      .greeting {
+        font-size: 18px;
+        margin-bottom: 20px;
+        color: #333;
+      }
+      .greeting strong {
+          color: #667eea;
+        }
+      .message {
+        font-size: 16px;
+        margin-bottom: 20px;
+        color: #555;
+      }
+      .cta-button {
+        display: inline-block;
+        background-color: #667eea;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: 600;
+        margin-top: 20px;
+      }
+      .footer {
+        background-color: #f8f9fa;
+        padding: 20px 30px;
+        text-align: center;
+        font-size: 14px;
+        color: #777;
+      }
+      .footer p {
+        margin: 5px 0;
+      }
+  body
+    .container
+      .header
+        .logo Book Verse
+        h1 Welcome Aboard!
+      .content
+        .greeting Hi 
+          strong #{userName},
+        .message
+          p Welcome to Book Verse! We're thrilled to have you join our community of book enthusiasts.
+          p Discover thousands of books, share reviews, and connect with fellow readers. Your journey into the world of literature starts here.
+          p If you have any questions, feel free to reach out to our support team.
+        a.cta-button(href=exploreLink) Explore Books Now
+      .footer
+        p Best regards,
+        p The Book Verse Team
+        p © 2024 Book Verse. All rights reserved.

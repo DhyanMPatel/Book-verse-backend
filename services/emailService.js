@@ -66,6 +66,44 @@ class EmailService {
     }
 
     /**
+     * Send Welcome email
+     * @param {string} userEmail - Registered email address
+     * @param {string} userName - User's display name
+     * @param {string} exploreLink - Full Explore mode link
+     * @returns {Promise<Object>} - Result of email sending
+     */
+    async WelcomeEmail(userEmail, userName, exploreLink) {
+        try {
+            const templatePath = path.join(__dirname, "..", "templates", "welcomeEmail.pug");
+
+            const html = pug.renderFile(templatePath, {
+                userName, userEmail, exploreLink
+            })
+
+            const mailOptions = {
+                from: `"Book Verse" <${process.env.EMAIL_USER}>`,
+                to: userEmail,
+                subject: "📚 Welcome to Book Verse!",
+                html,
+            }
+
+            const result = await this.transporter.sendMail(mailOptions);
+            return {
+                success: true,
+                message: "Welcome email sent successfully",
+                messageId: result.messageId,
+            };
+        } catch (error) {
+            console.error("Error sending welcome email:", error);
+            return {
+                success: false,
+                message: "Failed to send welcome email",
+                error: error.message,
+            };
+        }
+    }
+
+    /**
      * Verify transporter connection
      * @returns {Promise<boolean>} - True if connection is successful
      */

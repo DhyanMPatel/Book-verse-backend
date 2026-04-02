@@ -24,21 +24,26 @@ const cartSchema = mongoose.Schema({
             required: [true, "Price is required"],
             min: [0, "Price cannot be negative"]
         },
-         discount: {
-            type: Number,
-            required: [true, "Discount is required"],
-            min: [0, "Discount cannot be negative"]
-        },
-         coverImage: {
+        coverImage: {
             type: String,
-            required: [true, "Cover Image is required"],
-            trim: true,
+            required: [true, "Cover image is required"]
         },
         author: {
             type: String,
-            required: [true, "Author is required"],
-            trim: true,
-            maxlength: [100, "Author name cannot exceed 100 characters"]
+            required: [true, "Author is required"]
+        },
+        category: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "categories",
+            required: [true, "Category is required"]
+        },
+        discount: {
+            type: Number,
+            default: 0
+        },
+        avgRating: {
+            type: Number,
+            default: 0
         },
         quantity: {
             type: Number,

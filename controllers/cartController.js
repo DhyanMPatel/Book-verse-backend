@@ -2,6 +2,7 @@ import CartModal from "../modal/cartModel.js";
 import BookModal from "../modal/bookModal.js";
 import APIResponse from "../utils/APIResponse.js";
 import { CartDataOrganizer } from "../halpers/cartHelper.js";
+import { disconnect } from "mongoose";
 
 export const getCartController = async (req, res) => {
     try {
@@ -53,9 +54,10 @@ export const addItemToCartController = async (req, res) => {
                 bookId,
                 title: book.title,
                 price: book.price,
+                discount: book.discount,
                 coverImage: book.coverImage,
                 author: book.author,
-                quantity
+                quantity: quantity
             });
         }
 

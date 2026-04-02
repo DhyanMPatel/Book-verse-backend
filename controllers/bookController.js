@@ -2,7 +2,7 @@ import "dotenv/config";
 import BookModal from "../modal/bookModal.js";
 import { CategoryModal } from "../modal/categoryModel.js";
 import APIResponse from "../utils/APIResponse.js";
-// import fs from "fs/promises";
+import fs from "fs/promises";
 import mongoose from "mongoose";
 
 
@@ -187,7 +187,7 @@ export const getBookDetailsController = async (req, res) => {
 }
 
 
-import fs from "fs/promises";
+
 
 export const deleteBookController = async (req, res) => {
     try {

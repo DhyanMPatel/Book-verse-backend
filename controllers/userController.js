@@ -40,7 +40,6 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-
 // Get single user by ID
 export const getUserById = async (req, res) => {
   try {
@@ -94,7 +93,6 @@ export const getUserById = async (req, res) => {
     );
   }
 }; 
-
 
 // Create an user
 export const createUser = async (req, res) => {

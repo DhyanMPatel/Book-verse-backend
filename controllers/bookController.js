@@ -186,9 +186,6 @@ export const getBookDetailsController = async (req, res) => {
     }
 }
 
-
-
-
 export const deleteBookController = async (req, res) => {
     try {
         const { id } = req.params;
@@ -220,6 +217,7 @@ export const deleteBookController = async (req, res) => {
 
 
 // update book controller
+
 export const updateBookController = async (req, res) => {
     try {
         const { id } = req.params;
@@ -252,7 +250,7 @@ export const updateBookController = async (req, res) => {
 
         const userId = req.user.id;
 
-        // Handle category (same as create API)
+        // Handle category
         let categoryId = book.categoryId;
 
         if (category) {
@@ -267,24 +265,32 @@ export const updateBookController = async (req, res) => {
             categoryId = categoryData._id;
         }
 
-        // Handle new uploaded files
+        // ✅ Check for new uploaded files
         const newCoverImage = req.files?.coverImage?.[0]?.path;
         const newFile = req.files?.file?.[0]?.path;
 
-        // 🔥 Delete old files if new uploaded
+        // ✅ Check for existing paths sent as strings from frontend
+        const existingCoverImagePath = req.body.coverImage;
+        const existingFilePath = req.body.file;
+
+        // 🔥 Delete old files only if new ones are uploaded
         if (newCoverImage && book.coverImage) {
             try {
                 await fs.unlink(book.coverImage);
-            } catch (err) {}
+            } catch (err) {
+                console.error("Failed to delete old cover image:", err);
+            }
         }
 
         if (newFile && book.fileUrl) {
             try {
                 await fs.unlink(book.fileUrl);
-            } catch (err) {}
+            } catch (err) {
+                console.error("Failed to delete old file:", err);
+            }
         }
 
-        // Update fields (only if provided)
+        // Update text fields (only if provided)
         book.title = title ?? book.title;
         book.author = author ?? book.author;
         book.description = description ?? book.description;
@@ -296,14 +302,25 @@ export const updateBookController = async (req, res) => {
         book.pages = pages ? parseInt(pages) : book.pages;
         book.language = language ?? book.language;
         book.publisher = publisher ?? book.publisher;
-        book.publishedDate = publishedDate
-            ? new Date(publishedDate)
-            : book.publishedDate;
+        book.publishedDate = publishedDate ? new Date(publishedDate) : book.publishedDate;
         book.isbn = isbn ?? book.isbn;
 
-        // Update files
-        if (newCoverImage) book.coverImage = newCoverImage;
-        if (newFile) book.fileUrl = newFile;
+        // ✅ Update coverImage:
+        // new file uploaded → use new path
+        // existing string path sent from frontend → keep it
+        // nothing sent → keep current db value
+        if (newCoverImage) {
+            book.coverImage = newCoverImage;
+        } else if (existingCoverImagePath && typeof existingCoverImagePath === "string") {
+            book.coverImage = existingCoverImagePath;
+        }
+
+        // ✅ Same logic for file
+        if (newFile) {
+            book.fileUrl = newFile;
+        } else if (existingFilePath && typeof existingFilePath === "string") {
+            book.fileUrl = existingFilePath;
+        }
 
         // Update user
         book.updatedBy = userId;
@@ -321,3 +338,5 @@ export const updateBookController = async (req, res) => {
         return APIResponse.errorResponse(res, error.message, 500);
     }
 };
+
+

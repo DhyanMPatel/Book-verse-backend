@@ -176,3 +176,37 @@ export const razorpayWebhookController = async (req, res) => {
         return APIResponse.errorResponse(res, "Internal server error during webhook processing", 500);
     }
 }
+
+export const getUserPurchasedBooksController = async (req, res) => {
+    try {
+        const { userId } = req.params;  // 👈 from URL now
+
+        const orders = await OrderModal.find({
+            userId,
+            status: { $in: ["paid", "completed"] }
+        });
+
+        if (!orders || orders.length === 0) {
+            return APIResponse.successResponse(res, {
+                userId,
+                purchasedBooks: []
+            }, "No purchased books found", 200);
+        }
+
+        const purchasedBooks = orders.flatMap(order =>
+            order.items.map(item => ({
+                bookId: item.bookId
+            }))
+        );
+
+        return APIResponse.successResponse(res, {
+            userId,
+            totalBooks: purchasedBooks.length,
+            purchasedBooks
+        }, "Purchased books fetched successfully", 200);
+
+    } catch (err) {
+        console.error("Get purchased books error:", err);
+        return APIResponse.errorResponse(res, "Internal server error", 500);
+    }
+};

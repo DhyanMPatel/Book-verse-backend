@@ -210,3 +210,145 @@ export const getUserPurchasedBooksController = async (req, res) => {
         return APIResponse.errorResponse(res, "Internal server error", 500);
     }
 };
+
+
+export const getTotalRevenueController = async (req, res) => {
+    try {
+        // Fetch all paid and completed orders
+        const paidOrders = await OrderModal.find({
+            status: { $in: ["paid", "completed"] }
+        }).select('totalAmount createdAt');
+ 
+        // Calculate total revenue
+        const totalRevenue = paidOrders.reduce((sum, order) => {
+            return sum + (order.totalAmount || 0);
+        }, 0);
+ 
+        // Calculate this month's revenue
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        
+        const monthlyRevenue = paidOrders
+            .filter(order => new Date(order.createdAt) >= startOfMonth)
+            .reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+ 
+        // Calculate last month's revenue for comparison
+        const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+        
+        const lastMonthRevenue = paidOrders
+            .filter(order => {
+                const orderDate = new Date(order.createdAt);
+                return orderDate >= startOfLastMonth && orderDate <= endOfLastMonth;
+            })
+            .reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+ 
+        // Calculate growth percentage
+        const growthPercentage = lastMonthRevenue > 0 
+            ? (((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue) * 100).toFixed(1)
+            : 100;
+ 
+        return APIResponse.successResponse(res, {
+            totalRevenue: Math.round(totalRevenue),
+            monthlyRevenue: Math.round(monthlyRevenue),
+            lastMonthRevenue: Math.round(lastMonthRevenue),
+            growthPercentage: parseFloat(growthPercentage),
+            totalOrders: paidOrders.length,
+            currency: "INR"
+        }, "Total revenue fetched successfully", 200);
+ 
+    } catch (err) {
+        console.error("Get total revenue error:", err);
+        return APIResponse.errorResponse(res, "Internal server error", 500);
+    }
+};
+ 
+// ✅ NEW: Get Weekly Sales (Last 7 Days)
+export const getWeeklySalesController = async (req, res) => {
+    try {
+        // Fetch all paid orders
+        const paidOrders = await OrderModal.find({
+            status: { $in: ["paid", "completed"] }
+        }).select('totalAmount createdAt items');
+ 
+        // Calculate last 7 days sales
+        const today = new Date();
+        const weeklyData = [];
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+ 
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date(today);
+            date.setDate(date.getDate() - i);
+            date.setHours(0, 0, 0, 0);
+ 
+            const nextDate = new Date(date);
+            nextDate.setDate(nextDate.getDate() + 1);
+ 
+            // Filter orders for this specific day
+            const dayOrders = paidOrders.filter(order => {
+                const orderDate = new Date(order.createdAt);
+                return orderDate >= date && orderDate < nextDate;
+            });
+ 
+            // Calculate revenue and orders count for this day
+            const dayRevenue = dayOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+            const dayOrdersCount = dayOrders.length;
+ 
+            // Calculate books sold
+            const booksSold = dayOrders.reduce((total, order) => {
+                return total + (order.items?.reduce((sum, item) => sum + (item.quantity || 1), 0) || 0);
+            }, 0);
+ 
+            weeklyData.push({
+                day: dayNames[date.getDay()],
+                date: date.toISOString().split('T')[0],
+                revenue: Math.round(dayRevenue),
+                orders: dayOrdersCount,
+                booksSold: booksSold
+            });
+        }
+ 
+        // Calculate weekly totals
+        const weeklyRevenue = weeklyData.reduce((sum, day) => sum + day.revenue, 0);
+        const weeklyOrders = weeklyData.reduce((sum, day) => sum + day.orders, 0);
+        const weeklyBooksSold = weeklyData.reduce((sum, day) => sum + day.booksSold, 0);
+ 
+        // Calculate previous week for comparison
+        const previousWeekStart = new Date(today);
+        previousWeekStart.setDate(previousWeekStart.getDate() - 13);
+        previousWeekStart.setHours(0, 0, 0, 0);
+ 
+        const previousWeekEnd = new Date(today);
+        previousWeekEnd.setDate(previousWeekEnd.getDate() - 7);
+        previousWeekEnd.setHours(0, 0, 0, 0);
+ 
+        const previousWeekRevenue = paidOrders
+            .filter(order => {
+                const orderDate = new Date(order.createdAt);
+                return orderDate >= previousWeekStart && orderDate < previousWeekEnd;
+            })
+            .reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+ 
+        const weekOverWeekGrowth = previousWeekRevenue > 0
+            ? (((weeklyRevenue - previousWeekRevenue) / previousWeekRevenue) * 100).toFixed(1)
+            : 100;
+ 
+        return APIResponse.successResponse(res, {
+            weeklyData: weeklyData,
+            summary: {
+                totalRevenue: weeklyRevenue,
+                totalOrders: weeklyOrders,
+                totalBooksSold: weeklyBooksSold,
+                averageDailyRevenue: Math.round(weeklyRevenue / 7),
+                averageOrderValue: weeklyOrders > 0 ? Math.round(weeklyRevenue / weeklyOrders) : 0,
+                weekOverWeekGrowth: parseFloat(weekOverWeekGrowth),
+                currency: "INR"
+            }
+        }, "Weekly sales fetched successfully", 200);
+ 
+    } catch (err) {
+        console.error("Get weekly sales error:", err);
+        return APIResponse.errorResponse(res, "Internal server error", 500);
+    }
+};
+ 

@@ -339,4 +339,47 @@ export const updateBookController = async (req, res) => {
     }
 };
 
+export const downloadBookController = async (req, res) => {
+    try {
+        const { id } = req.params;
 
+        const book = await BookModal.findById(id);
+
+        if (!book) {
+            return APIResponse.errorResponse(res, "Book not found", 404);
+        }
+
+        if (!book.fileUrl) {
+            return APIResponse.errorResponse(res, "No file available for this book", 404);
+        }
+
+        // Verify file exists on disk
+        try {
+            await fs.access(book.fileUrl);
+        } catch {
+            return APIResponse.errorResponse(res, "File not found on server", 404);
+        }
+
+        // Build a clean filename: e.g. "the-great-gatsby.pdf"
+        const extension = book.fileUrl.split(".").pop();
+        const filename = `${book.title.replace(/\s+/g, "-").toLowerCase()}.${extension}`;
+
+        // Set headers to trigger browser download
+        res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+        res.setHeader("Content-Type", "application/octet-stream");
+
+        // Stream the file to the response
+        const { createReadStream } = await import("fs");
+        const fileStream = createReadStream(book.fileUrl);
+
+        fileStream.on("error", () => {
+            return APIResponse.errorResponse(res, "Error reading file", 500);
+        });
+
+        fileStream.pipe(res);
+
+    } catch (error) {
+        console.error("Error downloading book:", error);
+        return APIResponse.errorResponse(res, error.message, 500);
+    }
+};

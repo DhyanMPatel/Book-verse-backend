@@ -1,5 +1,5 @@
 import express from "express";
-import { createBookController, getBookController, getBookDetailsController ,deleteBookController,updateBookController} from "../controllers/bookController.js";
+import { createBookController, getBookController, getBookDetailsController ,deleteBookController,updateBookController , downloadBookController} from "../controllers/bookController.js";
 import { authenticateToken, authorizeRoles } from "../middleware/authMiddleware.js";
 import { upload } from "../utils/fileUpload.js";
 import { processFilePaths } from "../halpers/relativePathGetter.js";
@@ -31,8 +31,12 @@ bookRouter.route("/update/:id").patch(
 bookRouter.route("/delete/:id").delete(authenticateToken, authorizeRoles('admin'), deleteBookController);
 
 
+// Add this route — auth required so only logged-in users can download
+bookRouter.route("/download/:id").get(authenticateToken, downloadBookController);
+
 // Book Details routes
 bookRouter.route("/details/:id").get(getBookDetailsController)
+
 
 
 export default bookRouter;

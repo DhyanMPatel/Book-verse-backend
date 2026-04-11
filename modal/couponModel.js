@@ -70,7 +70,7 @@ const couponSchema = mongoose.Schema(
 );
 
 // FIX: was referencing non-existent field "category" — corrected to "categoryId"
-couponSchema.index({ couponCode: 1 });
+// couponSchema.index({ couponCode: 1 });
 couponSchema.index({ validTillDate: 1 });
 couponSchema.index({ categoryId: 1 });
 

@@ -22,5 +22,4 @@ orderRouter.route("/admin/total-revenue").get(authenticateToken, getTotalRevenue
 
 orderRouter.route("/admin/weekly-sales").get(authenticateToken, getWeeklySalesController);
 
-
 export default orderRouter;

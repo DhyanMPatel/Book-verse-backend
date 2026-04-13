@@ -1,4 +1,5 @@
 import UserModal from "../modal/userModal.js";
+import WishlistModal from "../modal/wishlistModel.js";
 import APIResponse from "../utils/APIResponse.js";
 import bcrypt from "bcryptjs";
 
@@ -65,6 +66,9 @@ export const getUserById = async (req, res) => {
       );
     }
 
+    const wishlist = await WishlistModal.findOne({ userId: user._id })
+
+
     // 🔹 Format response (same style as getAllUsers)
     const userData = {
       id: user._id,
@@ -73,6 +77,7 @@ export const getUserById = async (req, res) => {
       role: user.role,
       isActive: user.isActive,
       phone: user.phone,
+      wishlist: wishlist?.books,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

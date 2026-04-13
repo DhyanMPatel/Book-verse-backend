@@ -53,11 +53,34 @@ export const createOrderController = async (req, res) => {
 
 export const getUserOrdersController = async (req, res) => {
     try {
-        const userId = req.user.id; // Assuming auth middleware sets req.user
+        const orders = await OrderModal.find()
+            .populate("userId", "name email phone")
+            .sort({ createdAt: -1 });
 
-        const orders = await OrderModal.find({ userId }).sort({ createdAt: -1 });
+        const formattedOrders = orders.map(order => ({
+            id: order._id,
+            razorpayOrderId: order.razorpayOrderId,
+            razorpayPaymentId: order.razorpayPaymentId,
+            totalAmount: order.totalAmount,
+            currency: order.currency || "INR",
+            status: order.status,
+            user: {
+                id: order.userId?._id,
+                name: order.userId?.name,
+                email: order.userId?.email,
+                phone: order.userId?.phone
+            },
+            items: order.items?.map(item => ({
+                bookId: item.bookId,
+                title: item.title,
+                price: item.price,
+                quantity: item.quantity
+            })),
+            createdAt: order.createdAt,
+            updatedAt: order.updatedAt
+        }));
 
-        APIResponse.successResponse(res, orders, "Orders fetched successfully", 200);
+        APIResponse.successResponse(res, formattedOrders, "Orders fetched successfully", 200);
     } catch (err) {
         console.error("Get orders error:", err);
         return APIResponse.errorResponse(res, "Internal server error", 500);
@@ -222,36 +245,36 @@ export const getTotalRevenueController = async (req, res) => {
         const paidOrders = await OrderModal.find({
             status: { $in: ["paid", "completed"] }
         }).select('totalAmount createdAt');
- 
+
         // Calculate total revenue
         const totalRevenue = paidOrders.reduce((sum, order) => {
             return sum + (order.totalAmount || 0);
         }, 0);
- 
+
         // Calculate this month's revenue
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        
+
         const monthlyRevenue = paidOrders
             .filter(order => new Date(order.createdAt) >= startOfMonth)
             .reduce((sum, order) => sum + (order.totalAmount || 0), 0);
- 
+
         // Calculate last month's revenue for comparison
         const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
-        
+
         const lastMonthRevenue = paidOrders
             .filter(order => {
                 const orderDate = new Date(order.createdAt);
                 return orderDate >= startOfLastMonth && orderDate <= endOfLastMonth;
             })
             .reduce((sum, order) => sum + (order.totalAmount || 0), 0);
- 
+
         // Calculate growth percentage
-        const growthPercentage = lastMonthRevenue > 0 
+        const growthPercentage = lastMonthRevenue > 0
             ? (((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue) * 100).toFixed(1)
             : 100;
- 
+
         return APIResponse.successResponse(res, {
             totalRevenue: Math.round(totalRevenue),
             monthlyRevenue: Math.round(monthlyRevenue),
@@ -260,13 +283,13 @@ export const getTotalRevenueController = async (req, res) => {
             totalOrders: paidOrders.length,
             currency: "INR"
         }, "Total revenue fetched successfully", 200);
- 
+
     } catch (err) {
         console.error("Get total revenue error:", err);
         return APIResponse.errorResponse(res, "Internal server error", 500);
     }
 };
- 
+
 // ✅ NEW: Get Weekly Sales (Last 7 Days)
 export const getWeeklySalesController = async (req, res) => {
     try {
@@ -274,35 +297,35 @@ export const getWeeklySalesController = async (req, res) => {
         const paidOrders = await OrderModal.find({
             status: { $in: ["paid", "completed"] }
         }).select('totalAmount createdAt items');
- 
+
         // Calculate last 7 days sales
         const today = new Date();
         const weeklyData = [];
         const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
- 
+
         for (let i = 6; i >= 0; i--) {
             const date = new Date(today);
             date.setDate(date.getDate() - i);
             date.setHours(0, 0, 0, 0);
- 
+
             const nextDate = new Date(date);
             nextDate.setDate(nextDate.getDate() + 1);
- 
+
             // Filter orders for this specific day
             const dayOrders = paidOrders.filter(order => {
                 const orderDate = new Date(order.createdAt);
                 return orderDate >= date && orderDate < nextDate;
             });
- 
+
             // Calculate revenue and orders count for this day
             const dayRevenue = dayOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
             const dayOrdersCount = dayOrders.length;
- 
+
             // Calculate books sold
             const booksSold = dayOrders.reduce((total, order) => {
                 return total + (order.items?.reduce((sum, item) => sum + (item.quantity || 1), 0) || 0);
             }, 0);
- 
+
             weeklyData.push({
                 day: dayNames[date.getDay()],
                 date: date.toISOString().split('T')[0],
@@ -311,32 +334,32 @@ export const getWeeklySalesController = async (req, res) => {
                 booksSold: booksSold
             });
         }
- 
+
         // Calculate weekly totals
         const weeklyRevenue = weeklyData.reduce((sum, day) => sum + day.revenue, 0);
         const weeklyOrders = weeklyData.reduce((sum, day) => sum + day.orders, 0);
         const weeklyBooksSold = weeklyData.reduce((sum, day) => sum + day.booksSold, 0);
- 
+
         // Calculate previous week for comparison
         const previousWeekStart = new Date(today);
         previousWeekStart.setDate(previousWeekStart.getDate() - 13);
         previousWeekStart.setHours(0, 0, 0, 0);
- 
+
         const previousWeekEnd = new Date(today);
         previousWeekEnd.setDate(previousWeekEnd.getDate() - 7);
         previousWeekEnd.setHours(0, 0, 0, 0);
- 
+
         const previousWeekRevenue = paidOrders
             .filter(order => {
                 const orderDate = new Date(order.createdAt);
                 return orderDate >= previousWeekStart && orderDate < previousWeekEnd;
             })
             .reduce((sum, order) => sum + (order.totalAmount || 0), 0);
- 
+
         const weekOverWeekGrowth = previousWeekRevenue > 0
             ? (((weeklyRevenue - previousWeekRevenue) / previousWeekRevenue) * 100).toFixed(1)
             : 100;
- 
+
         return APIResponse.successResponse(res, {
             weeklyData: weeklyData,
             summary: {
@@ -349,13 +372,13 @@ export const getWeeklySalesController = async (req, res) => {
                 currency: "INR"
             }
         }, "Weekly sales fetched successfully", 200);
- 
+
     } catch (err) {
         console.error("Get weekly sales error:", err);
         return APIResponse.errorResponse(res, "Internal server error", 500);
     }
 };
- 
+
 // ✅ Get Analytics Dashboard - Top Performers (Most Read & Top Earning Books)
 export const getAnalyticsDashboardController = async (req, res) => {
     try {
@@ -388,10 +411,10 @@ export const getAnalyticsDashboardController = async (req, res) => {
                     }
 
                     const metrics = bookMetrics.get(bookId);
-                    
+
                     // Update reads (quantity sold = times read)
                     metrics.totalReads += (item.quantity || 1);
-                    
+
                     // Update revenue
                     const itemRevenue = (item.price || 0) * (item.quantity || 1);
                     metrics.totalRevenue += itemRevenue;
@@ -447,37 +470,37 @@ export const getAnalyticsDashboardController = async (req, res) => {
 };
 
 export const getUserStatsController = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    console.log("Fetching stats for userId:", userId);
+    try {
+        const { userId } = req.params;
+        console.log("Fetching stats for userId:", userId);
 
-    // ✅ Your Order schema uses "userId" not "user"
-    const orders = await OrderModal.countDocuments({ userId: userId });
-    console.log("Orders found:", orders);
+        // ✅ Your Order schema uses "userId" not "user"
+        const orders = await OrderModal.countDocuments({ userId: userId });
+        console.log("Orders found:", orders);
 
-    // ✅ Your Wishlist schema — check it uses "userId" too
-    const wishlist = await WishlistModal.findOne({ userId: userId });
-    const wishlistCount = wishlist?.books?.length || 0;
+        // ✅ Your Wishlist schema — check it uses "userId" too
+        const wishlist = await WishlistModal.findOne({ userId: userId });
+        const wishlistCount = wishlist?.books?.length || 0;
 
-    // ✅ Your Cart schema uses "userId"
-    const cart = await CartModal.findOne({ userId: userId });
-    const cartCount = cart?.items?.length || 0;
+        // ✅ Your Cart schema uses "userId"
+        const cart = await CartModal.findOne({ userId: userId });
+        const cartCount = cart?.items?.length || 0;
 
 
-    return APIResponse.successResponse(
-      res,
-      {
-        orders,
-        wishlist: wishlistCount,
-        cart: cartCount,
-      },
-      "User stats fetched successfully",
-      200
-    );
-  } catch (error) {
-    console.error("User stats error:", error);
-    return APIResponse.errorResponse(res, "Internal server error", 500);
-  }
+        return APIResponse.successResponse(
+            res,
+            {
+                orders,
+                wishlist: wishlistCount,
+                cart: cartCount,
+            },
+            "User stats fetched successfully",
+            200
+        );
+    } catch (error) {
+        console.error("User stats error:", error);
+        return APIResponse.errorResponse(res, "Internal server error", 500);
+    }
 };
 
 

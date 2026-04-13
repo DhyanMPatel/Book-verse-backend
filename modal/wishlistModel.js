@@ -93,4 +93,6 @@ const wishlistSchema = mongoose.Schema(
     { timestamps: true }
 );
 
-export default mongoose.model("Wishlist", wishlistSchema);
+const WishlistModal = mongoose.model("Wishlist", wishlistSchema);
+
+export default WishlistModal;

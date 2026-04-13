@@ -212,6 +212,10 @@ export const getUserPurchasedBooksController = async (req, res) => {
 };
 
 
+//dashboard controllers for admin analytics
+
+
+
 export const getTotalRevenueController = async (req, res) => {
     try {
         // Fetch all paid and completed orders
@@ -352,3 +356,225 @@ export const getWeeklySalesController = async (req, res) => {
     }
 };
  
+// ✅ Get Analytics Dashboard - Top Performers (Most Read & Top Earning Books)
+export const getAnalyticsDashboardController = async (req, res) => {
+    try {
+        // Fetch all paid and completed orders with populated book details
+        const orders = await OrderModal.find({
+            status: { $in: ["paid", "completed"] }
+        }).select('items').populate({
+            path: 'items.bookId',
+            select: 'title author price'
+        });
+
+        // Initialize tracking maps
+        const bookMetrics = new Map();
+
+        // Process all orders and aggregate metrics
+        orders.forEach(order => {
+            order.items?.forEach(item => {
+                const bookId = item.bookId?._id?.toString();
+                const bookTitle = item.bookId?.title;
+
+                if (bookId && bookTitle) {
+                    // Get or create book metrics entry
+                    if (!bookMetrics.has(bookId)) {
+                        bookMetrics.set(bookId, {
+                            id: bookId,
+                            title: bookTitle,
+                            totalReads: 0,
+                            totalRevenue: 0
+                        });
+                    }
+
+                    const metrics = bookMetrics.get(bookId);
+                    
+                    // Update reads (quantity sold = times read)
+                    metrics.totalReads += (item.quantity || 1);
+                    
+                    // Update revenue
+                    const itemRevenue = (item.price || 0) * (item.quantity || 1);
+                    metrics.totalRevenue += itemRevenue;
+                }
+            });
+        });
+
+        // Convert Map to Array for sorting
+        const metricsArray = Array.from(bookMetrics.values());
+
+        // Get Top 5 Most Read Books
+        const mostReadBooks = [...metricsArray]
+            .sort((a, b) => b.totalReads - a.totalReads)
+            .slice(0, 5)
+            .map((book, index) => ({
+                rank: index + 1,
+                title: book.title,
+                readCount: book.totalReads
+            }));
+
+        // Get Top 5 Earning Books
+        const topEarningBooks = [...metricsArray]
+            .sort((a, b) => b.totalRevenue - a.totalRevenue)
+            .slice(0, 5)
+            .map((book, index) => ({
+                rank: index + 1,
+                title: book.title,
+                revenue: Math.round(book.totalRevenue)
+            }));
+
+        // Calculate summary statistics
+        const totalBooksAnalyzed = metricsArray.length;
+        const totalReadCount = metricsArray.reduce((sum, book) => sum + book.totalReads, 0);
+        const totalBookRevenue = metricsArray.reduce((sum, book) => sum + book.totalRevenue, 0);
+
+        return APIResponse.successResponse(res, {
+            topPerformers: {
+                mostReadBooks,
+                topEarningBooks
+            },
+            summary: {
+                totalBooksAnalyzed,
+                totalReadCount,
+                totalBookRevenue: Math.round(totalBookRevenue),
+                currency: "INR"
+            }
+        }, "Analytics dashboard data fetched successfully", 200);
+
+    } catch (err) {
+        console.error("Get analytics dashboard error:", err);
+        return APIResponse.errorResponse(res, "Internal server error", 500);
+    }
+};
+
+export const getUserStatsController = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    console.log("Fetching stats for userId:", userId);
+
+    // ✅ Your Order schema uses "userId" not "user"
+    const orders = await OrderModal.countDocuments({ userId: userId });
+    console.log("Orders found:", orders);
+
+    // ✅ Your Wishlist schema — check it uses "userId" too
+    const wishlist = await WishlistModal.findOne({ userId: userId });
+    const wishlistCount = wishlist?.books?.length || 0;
+
+    // ✅ Your Cart schema uses "userId"
+    const cart = await CartModal.findOne({ userId: userId });
+    const cartCount = cart?.items?.length || 0;
+
+
+    return APIResponse.successResponse(
+      res,
+      {
+        orders,
+        wishlist: wishlistCount,
+        cart: cartCount,
+      },
+      "User stats fetched successfully",
+      200
+    );
+  } catch (error) {
+    console.error("User stats error:", error);
+    return APIResponse.errorResponse(res, "Internal server error", 500);
+  }
+};
+
+
+// GET /admin/orders  — Get ALL orders (Admin only)
+export const getAllOrdersAdminController = async (req, res) => {
+    try {
+        const orders = await OrderModal.find()
+            .populate("userId", "name email")
+            .populate("items.bookId", "title")
+            .sort({ createdAt: -1 });
+
+        if (!orders || orders.length === 0) {
+            return APIResponse.successResponse(res, { orders: [] }, "No orders found", 200);
+        }
+
+        const formattedOrders = orders.map((order) => ({
+            id: order._id,
+            razorpayOrderId: order.razorpayOrderId,
+            razorpayPaymentId: order.razorpayPaymentId,
+            razorpaySignature: order.razorpaySignature,
+            status: order.status,
+            totalAmount: order.totalAmount,
+            currency: order.currency || "INR",
+            userId: {
+                _id: order.userId?._id,
+                name: order.userId?.name,
+                email: order.userId?.email,
+            },
+            items: order.items?.map((item) => ({
+                bookId: item.bookId?._id || item.bookId,
+                title: item.bookId?.title || item.title || "Unknown Book",
+                price: item.price,
+                quantity: item.quantity || 1,
+            })),
+            createdAt: order.createdAt,
+            updatedAt: order.updatedAt,
+        }));
+
+        return APIResponse.successResponse(
+            res,
+            { orders: formattedOrders },
+            "All orders fetched successfully",
+            200
+        );
+    } catch (err) {
+        console.error("Get all orders error:", err);
+        return APIResponse.errorResponse(res, "Internal server error", 500);
+    }
+};
+
+
+// GET /admin/orders/:id  — Get single order detail (Admin)
+export const getOrderByIdAdminController = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const order = await OrderModal.findById(id)   // ← No userId filter, admin can see any order
+            .populate("userId", "name email")
+            .populate("items.bookId", "title");
+
+        if (!order) {
+            return APIResponse.errorResponse(res, "Order not found", 404);
+        }
+
+        const formattedOrder = {
+            id: order._id,
+            razorpayOrderId: order.razorpayOrderId,
+            razorpayPaymentId: order.razorpayPaymentId,
+            razorpaySignature: order.razorpaySignature,
+            status: order.status,
+            totalAmount: order.totalAmount,
+            currency: order.currency || "INR",
+            userId: {
+                _id: order.userId?._id,
+                name: order.userId?.name,
+                email: order.userId?.email,
+            },
+            items: order.items?.map((item) => ({
+                bookId: item.bookId?._id || item.bookId,
+                title: item.bookId?.title || item.title || "Unknown Book",
+                price: item.price,
+                quantity: item.quantity || 1,
+            })),
+            createdAt: order.createdAt,
+            updatedAt: order.updatedAt,
+        };
+
+        return APIResponse.successResponse(
+            res,
+            { order: formattedOrder },
+            "Order fetched successfully",
+            200
+        );
+    } catch (err) {
+        console.error("Get order by ID error:", err);
+        return APIResponse.errorResponse(res, "Internal server error", 500);
+    }
+};
+
+// Admin routes (protect with both authMiddleware + adminMiddleware)

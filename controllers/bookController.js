@@ -383,3 +383,97 @@ export const downloadBookController = async (req, res) => {
         return APIResponse.errorResponse(res, error.message, 500);
     }
 };
+
+// admin side analytics - genre distribution
+
+export const getGenreAnalyticsController = async (req, res) => {
+    try {
+        // Get all books with their category
+        const books = await BookModal.find().populate("categoryId", "name");
+
+        // Count books per category in memory
+        const genreMap = {};
+
+        books.forEach(book => {
+            const categoryName = book.categoryId?.name || "Unknown";
+            if (genreMap[categoryName]) {
+                genreMap[categoryName]++;
+            } else {
+                genreMap[categoryName] = 1;
+            }
+        });
+
+        // Convert to array format for frontend chart
+        const genres = Object.entries(genreMap)
+            .map(([name, value]) => ({
+                name: name.charAt(0).toUpperCase() + name.slice(1),
+                value
+            }))
+            .sort((a, b) => b.value - a.value);
+
+        return APIResponse.successResponse(
+            res,
+            { genres },
+            "Genre analytics fetched successfully",
+            200
+        );
+
+    } catch (err) {
+        console.error("Genre analytics error:", err.message);
+        return APIResponse.errorResponse(res, err.message, 500);
+    }
+};
+
+// export const getGenreAnalyticsController = async (req, res) => {
+//     try {
+//         const genreStats = await BookModal.aggregate([
+//             {
+//                 $group: {
+//                     _id: "$categoryId",
+//                     count: { $sum: 1 }
+//                 }
+//             },
+//             {
+//                 $lookup: {
+//                     from: "categories",
+//                     localField: "_id",
+//                     foreignField: "_id",
+//                     as: "categoryInfo"
+//                 }
+//             },
+//             {
+//                 $unwind: {
+//                     path: "$categoryInfo",
+//                     preserveNullAndEmpty: true
+//                 }
+//             },
+//             {
+//                 $project: {
+//                     _id: 0,
+//                     name: { $ifNull: ["$categoryInfo.name", "Unknown"] },
+//                     value: "$count"
+//                 }
+//             },
+//             {
+//                 $sort: { value: -1 }
+//             }
+//         ]);
+
+//         return APIResponse.successResponse(
+//             res,
+//             { genres: genreStats },
+//             "Genre analytics fetched successfully",
+//             200
+//         );
+
+//     } catch (err) {
+//         console.error("Genre analytics error:", err);
+//         return APIResponse.errorResponse(res, "Internal server error", 500);
+//     }
+// };
+
+
+
+
+
+

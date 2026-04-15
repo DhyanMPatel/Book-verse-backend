@@ -279,46 +279,46 @@ export const deleteCouponController = async (req, res) => {
 };
 
 // Apply coupon (increments timesUsed)
-export const applyCouponController = async (req, res) => {
-  try {
-    const { couponCode } = req.body;
+  export const applyCouponController = async (req, res) => {
+    try {
+      const { couponCode } = req.body;
 
-    if (!couponCode) {
-      return APIResponse.errorResponse(res, "Coupon code is required", 400);
-    }
+      if (!couponCode) {
+        return APIResponse.errorResponse(res, "Coupon code is required", 400);
+      }
 
-    const coupon = await CouponModel.findOne({
-      couponCode: couponCode.toUpperCase(),
-      validTillDate: { $gt: new Date() },
-    });
+      const coupon = await CouponModel.findOne({
+        couponCode: couponCode.toUpperCase(),
+        validTillDate: { $gt: new Date() },
+      });
 
-    if (!coupon) {
-      return APIResponse.errorResponse(res, "Coupon is invalid or expired", 404);
-    }
+      if (!coupon) {
+        return APIResponse.errorResponse(res, "Coupon is invalid or expired", 404);
+      }
 
-    if (coupon.usageLimit !== null && coupon.timesUsed >= coupon.usageLimit) {
-      return APIResponse.errorResponse(
+      if (coupon.usageLimit !== null && coupon.timesUsed >= coupon.usageLimit) {
+        return APIResponse.errorResponse(
+          res,
+          "Coupon usage limit exceeded",
+          400
+        );
+      }
+
+      coupon.timesUsed += 1;
+      const appliedCoupon = await coupon.save();
+
+      return APIResponse.successResponse(
         res,
-        "Coupon usage limit exceeded",
-        400
+        {
+          couponCode: appliedCoupon.couponCode,
+          discount: appliedCoupon.discount,
+          discountType: appliedCoupon.discountType,
+          timesUsed: appliedCoupon.timesUsed,
+        },
+        "Coupon applied successfully",
+        200
       );
+    } catch (error) {
+      return APIResponse.errorResponse(res, error?.message || error, 500);
     }
-
-    coupon.timesUsed += 1;
-    const appliedCoupon = await coupon.save();
-
-    return APIResponse.successResponse(
-      res,
-      {
-        couponCode: appliedCoupon.couponCode,
-        discount: appliedCoupon.discount,
-        discountType: appliedCoupon.discountType,
-        timesUsed: appliedCoupon.timesUsed,
-      },
-      "Coupon applied successfully",
-      200
-    );
-  } catch (error) {
-    return APIResponse.errorResponse(res, error?.message || error, 500);
-  }
-};
+  };

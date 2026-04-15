@@ -6,7 +6,7 @@ export const CartDataOrganizer = (data) => {
             bookId: item.bookId,
             title: item.title,
             price: item.price,
-            coverImage: `${process.env.BASE_URL}/${item.coverImage}`,
+            coverImage: item.coverImage,
             author: item.author,
             category: item.category,
             discount: item.discount,

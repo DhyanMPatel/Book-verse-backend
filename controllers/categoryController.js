@@ -27,7 +27,6 @@ export const getAllCategoriesController = async (req, res) => {
   }
 };
 
-
 // ✅ Get single category
 export const getCategoryByIdController = async (req, res) => {
   try {
@@ -50,7 +49,6 @@ export const getCategoryByIdController = async (req, res) => {
     return APIResponse.errorResponse(res, error.message, 500);
   }
 };
-
 
 // ✅ Create category
 export const createCategoryController = async (req, res) => {
@@ -87,7 +85,6 @@ export const createCategoryController = async (req, res) => {
     return APIResponse.errorResponse(res, error.message, 500);
   }
 };
-
 
 // ✅ Update category
 export const updateCategoryController = async (req, res) => {
@@ -131,7 +128,6 @@ export const updateCategoryController = async (req, res) => {
     return APIResponse.errorResponse(res, error.message, 500);
   }
 };
-
 
 // ✅ Delete category
 export const deleteCategoryController = async (req, res) => {

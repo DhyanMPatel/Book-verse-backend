@@ -21,6 +21,43 @@ export const getCartController = async (req, res) => {
     }
 };
 
+export const getCartByUserIdController = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        if (!userId) {
+            return APIResponse.errorResponse(res, "User ID is required", 400);
+        }
+
+        const cart = await CartModal.findOne({ userId });
+
+        if (!cart) {
+            return APIResponse.successResponse(
+                res,
+                { items: [] },
+                "Cart is empty",
+                200
+            );
+        }
+
+        const cartData = CartDataOrganizer(cart);
+
+        return APIResponse.successResponse(
+            res,
+            cartData,
+            "Cart fetched successfully",
+            200
+        );
+
+    } catch (error) {
+        return APIResponse.errorResponse(
+            res,
+            error?.message || error,
+            500
+        );
+    }
+};
+
 export const addItemToCartController = async (req, res) => {
     try {
         const userId = req.user.id;

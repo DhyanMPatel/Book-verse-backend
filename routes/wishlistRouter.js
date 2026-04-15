@@ -4,6 +4,7 @@ import {
     addToWishlistController,
     removeFromWishlistController,
     clearWishlistController,
+    getWishlistByUserIdController,
 } from "../controllers/wishlistController.js";
 
 import { authenticateToken } from "../middleware/authMiddleware.js";
@@ -12,6 +13,9 @@ const wishlistRouter = express.Router();
 
 // Get wishlist
 wishlistRouter.get("/get", authenticateToken, getWishlistController);
+
+// Get wishlist by user ID (admin or self)
+wishlistRouter.get("/wishlist/:userId", authenticateToken, getWishlistByUserIdController);
 
 // Add book to wishlist
 wishlistRouter.post("/add", authenticateToken, addToWishlistController);

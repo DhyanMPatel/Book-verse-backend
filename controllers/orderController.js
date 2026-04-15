@@ -87,6 +87,49 @@ export const getUserOrdersController = async (req, res) => {
     }
 }
 
+export const getUserOrdersByUserIdController = async (req, res) => {
+    try {
+        const { userId } = req.params; // or req.user._id if using auth middleware
+
+        const orders = await OrderModal.find({ userId })
+            .populate("userId", "name email phone")
+            .sort({ createdAt: -1 });
+
+        if (!orders || orders.length === 0) {
+            return APIResponse.successResponse(res, [], "No orders found for this user", 200);
+        }
+
+        const formattedOrders = orders.map(order => ({
+            id: order._id,
+            razorpayOrderId: order.razorpayOrderId,
+            razorpayPaymentId: order.razorpayPaymentId,
+            totalAmount: order.totalAmount,
+            currency: order.currency || "INR",
+            status: order.status,
+            user: {
+                id: order.userId?._id,
+                name: order.userId?.name,
+                email: order.userId?.email,
+                phone: order.userId?.phone
+            },
+            items: order.items?.map(item => ({
+                bookId: item.bookId,
+                title: item.title,
+                price: item.price,
+                quantity: item.quantity
+            })),
+            createdAt: order.createdAt,
+            updatedAt: order.updatedAt
+        }));
+
+        APIResponse.successResponse(res, formattedOrders, "User orders fetched successfully", 200);
+
+    } catch (err) {
+        console.error("Get user orders error:", err);
+        return APIResponse.errorResponse(res, "Internal server error", 500);
+    }
+};
+
 export const verifyPaymentController = async (req, res) => {
     try {
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
@@ -234,11 +277,57 @@ export const getUserPurchasedBooksController = async (req, res) => {
     }
 };
 
+// GET /admin/orders/:id  — Get single order detail (Admin)
+export const getOrderByIdAdminController = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const order = await OrderModal.findById(id)   // ← No userId filter, admin can see any order
+            .populate("userId", "name email")
+            .populate("items.bookId", "title");
+
+        if (!order) {
+            return APIResponse.errorResponse(res, "Order not found", 404);
+        }
+
+        const formattedOrder = {
+            id: order._id,
+            razorpayOrderId: order.razorpayOrderId,
+            razorpayPaymentId: order.razorpayPaymentId,
+            razorpaySignature: order.razorpaySignature,
+            status: order.status,
+            totalAmount: order.totalAmount,
+            currency: order.currency || "INR",
+            userId: {
+                _id: order.userId?._id,
+                name: order.userId?.name,
+                email: order.userId?.email,
+            },
+            items: order.items?.map((item) => ({
+                bookId: item.bookId?._id || item.bookId,
+                title: item.bookId?.title || item.title || "Unknown Book",
+                price: item.price,
+                quantity: item.quantity || 1,
+            })),
+            createdAt: order.createdAt,
+            updatedAt: order.updatedAt,
+        };
+
+        return APIResponse.successResponse(
+            res,
+            { order: formattedOrder },
+            "Order fetched successfully",
+            200
+        );
+    } catch (err) {
+        console.error("Get order by ID error:", err);
+        return APIResponse.errorResponse(res, "Internal server error", 500);
+    }
+};
+
+
 
 //dashboard controllers for admin analytics
-
-
-
 export const getTotalRevenueController = async (req, res) => {
     try {
         // Fetch all paid and completed orders
@@ -503,7 +592,6 @@ export const getUserStatsController = async (req, res) => {
     }
 };
 
-
 // GET /admin/orders  — Get ALL orders (Admin only)
 export const getAllOrdersAdminController = async (req, res) => {
     try {
@@ -551,53 +639,5 @@ export const getAllOrdersAdminController = async (req, res) => {
     }
 };
 
-
-// GET /admin/orders/:id  — Get single order detail (Admin)
-export const getOrderByIdAdminController = async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        const order = await OrderModal.findById(id)   // ← No userId filter, admin can see any order
-            .populate("userId", "name email")
-            .populate("items.bookId", "title");
-
-        if (!order) {
-            return APIResponse.errorResponse(res, "Order not found", 404);
-        }
-
-        const formattedOrder = {
-            id: order._id,
-            razorpayOrderId: order.razorpayOrderId,
-            razorpayPaymentId: order.razorpayPaymentId,
-            razorpaySignature: order.razorpaySignature,
-            status: order.status,
-            totalAmount: order.totalAmount,
-            currency: order.currency || "INR",
-            userId: {
-                _id: order.userId?._id,
-                name: order.userId?.name,
-                email: order.userId?.email,
-            },
-            items: order.items?.map((item) => ({
-                bookId: item.bookId?._id || item.bookId,
-                title: item.bookId?.title || item.title || "Unknown Book",
-                price: item.price,
-                quantity: item.quantity || 1,
-            })),
-            createdAt: order.createdAt,
-            updatedAt: order.updatedAt,
-        };
-
-        return APIResponse.successResponse(
-            res,
-            { order: formattedOrder },
-            "Order fetched successfully",
-            200
-        );
-    } catch (err) {
-        console.error("Get order by ID error:", err);
-        return APIResponse.errorResponse(res, "Internal server error", 500);
-    }
-};
 
 // Admin routes (protect with both authMiddleware + adminMiddleware)

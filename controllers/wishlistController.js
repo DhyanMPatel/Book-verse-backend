@@ -3,13 +3,16 @@ import WishlistModal from "../modal/wishlistModel.js";
 import BookModal from "../modal/bookModal.js";
 import APIResponse from "../utils/APIResponse.js";
 
-// GET /wishlist/get
+
+
+
 export const getWishlistController = async (req, res) => {
     try {
         const userId = req.user.id;
 
         const wishlist = await WishlistModal.findOne({ userId }).populate(
-            "books.bookId"
+            "books.bookId",
+            "title author price coverImage"
         );
 
         if (!wishlist || wishlist.books.length === 0) {
@@ -21,16 +24,71 @@ export const getWishlistController = async (req, res) => {
             );
         }
 
+        const formattedWishlist = {
+            id: wishlist._id,
+            userId: wishlist.userId,
+            books: wishlist.books.map(item => ({
+                id: item.bookId?._id,
+                title: item.bookId?.title,
+                author: item.bookId?.author,
+                price: item.bookId?.price,
+                coverImage: item.bookId?.coverImage, // ✅ ADDED
+            })),
+        };
+
         APIResponse.successResponse(
+            res,
+            formattedWishlist,
+            "Wishlist fetched successfully",
+            200
+        );
+
+    } catch (error) {
+        APIResponse.errorResponse(res, error?.message || error, 500);
+    }
+};
+// GET /wishlist/get
+export const getWishlistByUserIdController = async (req, res) => {
+    try {
+        // Allow both: logged-in user OR explicit userId param
+        const userId = req.params.userId || req.user?.id;
+
+        if (!userId) {
+            return APIResponse.errorResponse(
+                res,
+                "User ID is required",
+                400
+            );
+        }
+
+        const wishlist = await WishlistModal.findOne({ userId })
+            .populate("books.bookId");
+
+        if (!wishlist || wishlist.books.length === 0) {
+            return APIResponse.successResponse(
+                res,
+                { books: [] },
+                "Wishlist is empty",
+                200
+            );
+        }
+
+        return APIResponse.successResponse(
             res,
             wishlist,
             "Wishlist fetched successfully",
             200
         );
+
     } catch (error) {
-        APIResponse.errorResponse(res, error?.message || error, 500);
+        return APIResponse.errorResponse(
+            res,
+            error?.message || error,
+            500
+        );
     }
 };
+
 
 // POST /wishlist/add  —  body: { bookId }
 export const addToWishlistController = async (req, res) => {

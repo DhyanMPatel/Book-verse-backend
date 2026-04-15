@@ -292,3 +292,71 @@ export const updateUser = async (req, res) => {
     APIResponse.errorResponse(res, error.message, 500);
   }
 };
+
+// Change password
+export const changePassword = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const { currentPassword, newPassword } = req.body;
+
+    // 🔹 Validate required fields
+    if (!currentPassword || !newPassword) {
+      return APIResponse.errorResponse(
+        res,
+        "Current password and new password are required",
+        400
+      );
+    }
+
+    // 🔹 Password strength validation
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      return APIResponse.errorResponse(
+        res,
+        "New password must be at least 8 characters and include uppercase, lowercase, number, and special character",
+        400
+      );
+    }
+
+    // 🔹 Prevent reuse of same password
+    if (currentPassword === newPassword) {
+      return APIResponse.errorResponse(
+        res,
+        "New password must be different from current password",
+        400
+      );
+    }
+
+    // 🔹 Fetch user WITH password (select: false in schema, so explicit select needed)
+    const user = await UserModal.findById(userId).select("+password");
+
+    if (!user) {
+      return APIResponse.errorResponse(res, "User not found", 404);
+    }
+
+    // 🔹 Verify current password - THIS CHECKS IF CURRENT PASSWORD IS CORRECT
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return APIResponse.errorResponse(res, "Current password is incorrect", 401);
+    }
+
+    // 🔹 Hash new password
+    const salt = await bcrypt.genSalt(12);
+    user.password = await bcrypt.hash(newPassword, salt);
+    user.updatedBy = userId;
+
+    await user.save();
+
+    return APIResponse.successResponse(
+      res,
+      null,
+      "Password changed successfully",
+      200
+    );
+
+  } catch (error) {
+    console.error("Error changing password:", error);
+    return APIResponse.errorResponse(res, error.message || "Internal Server Error", 500);
+  }
+};
+

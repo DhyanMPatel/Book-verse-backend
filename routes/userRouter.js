@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllUsers,createUser,deleteUser,updateUser,getUserById,changePassword, } from '../controllers/userController.js';
+import { getAllUsers, createUser, deleteUser, updateUser, getUserById, changePassword, } from '../controllers/userController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 
 const userRouter = express.Router();
@@ -7,6 +7,10 @@ const userRouter = express.Router();
 // Get all users
 //End point --> /user/
 userRouter.route("/").get(authenticateToken, getAllUsers);
+
+// Get current user's profile
+//End point --> /user/profile
+userRouter.get("/profile", authenticateToken, getUserById);
 
 // Get single user by ID
 //End point --> /user/:id

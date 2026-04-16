@@ -2,6 +2,8 @@ import UserModal from "../modal/userModal.js";
 import WishlistModal from "../modal/wishlistModel.js";
 import APIResponse from "../utils/APIResponse.js";
 import bcrypt from "bcryptjs";
+import OrderModal from '../modal/orderModel.js';
+import CartModal from "../modal/cartModel.js";
 
 //get all users
 export const getAllUsers = async (req, res) => {
@@ -46,8 +48,11 @@ export const getUserById = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // 🔹 Use token user ID for /profile endpoint, otherwise use params id
+    const userId = id || req.user?.id;
+
     // 🔹 Validate ID
-    if (!id) {
+    if (!userId) {
       return APIResponse.errorResponse(
         res,
         "User ID is required",
@@ -56,7 +61,7 @@ export const getUserById = async (req, res) => {
     }
 
     // 🔹 Find user
-    const user = await UserModal.findById(id);
+    const user = await UserModal.findById(userId);
 
     if (!user) {
       return APIResponse.errorResponse(
@@ -67,7 +72,8 @@ export const getUserById = async (req, res) => {
     }
 
     const wishlist = await WishlistModal.findOne({ userId: user._id })
-
+    const orders = await OrderModal.findOne({ userId: user._id })
+    const cartData = await CartModal.findOne({ userId: user._id })
 
     // 🔹 Format response (same style as getAllUsers)
     const userData = {
@@ -77,9 +83,11 @@ export const getUserById = async (req, res) => {
       role: user.role,
       isActive: user.isActive,
       phone: user.phone,
-      wishlist: wishlist?.books,
+      wishlist: wishlist?.books || 0,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
+      orders: orders?.items || 0,
+      cartData: cartData?.items || 0,
     };
 
     return APIResponse.successResponse(
@@ -97,7 +105,7 @@ export const getUserById = async (req, res) => {
       500
     );
   }
-}; 
+};
 
 // Create an user
 export const createUser = async (req, res) => {

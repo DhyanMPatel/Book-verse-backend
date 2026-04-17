@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { disconnect } from "mongoose";
 
 const cartSchema = mongoose.Schema({
     userId: {
@@ -23,6 +23,27 @@ const cartSchema = mongoose.Schema({
             type: Number,
             required: [true, "Price is required"],
             min: [0, "Price cannot be negative"]
+        },
+        coverImage: {
+            type: String,
+            required: [true, "Cover image is required"]
+        },
+        author: {
+            type: String,
+            required: [true, "Author is required"]
+        },
+        category: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "categories",
+            required: [true, "Category is required"]
+        },
+        discount: {
+            type: Number,
+            default: 0
+        },
+        avgRating: {
+            type: Number,
+            default: 0
         },
         quantity: {
             type: Number,

@@ -1,5 +1,5 @@
 import express from "express";
-import { createBookController, getBookController, getBookDetailsController } from "../controllers/bookController.js";
+import { createBookController, getBookController, getBookDetailsController ,deleteBookController,updateBookController , downloadBookController,getGenreAnalyticsController} from "../controllers/bookController.js";
 import { authenticateToken, authorizeRoles } from "../middleware/authMiddleware.js";
 import { upload } from "../utils/fileUpload.js";
 import { processFilePaths } from "../halpers/relativePathGetter.js";
@@ -14,12 +14,30 @@ bookRouter.route("/create").post(authenticateToken, upload.fields([
     { name: 'coverImage', maxCount: 1 },
     { name: 'file', maxCount: 1 }
 ]), processFilePaths, authorizeRoles('admin'), createBookController);
-// bookRouter.route("/update/:id").put(authenticateToken, authorizeRoles('admin'), updateBookController);
-// bookRouter.route("/delete/:id").delete(authenticateToken, authorizeRoles('admin'), deleteBookController);
 
+// bookRouter.route("/update/:id").put(authenticateToken, authorizeRoles('admin'), updateBookController);
+
+bookRouter.route("/update/:id").patch(
+    authenticateToken,
+    upload.fields([
+        { name: "coverImage", maxCount: 1 },
+        { name: "file", maxCount: 1 }
+    ]),
+    processFilePaths,
+    authorizeRoles("admin"),
+    updateBookController
+);
+
+bookRouter.route("/delete/:id").delete(authenticateToken, authorizeRoles('admin'), deleteBookController);
+
+
+// Add this route — auth required so only logged-in users can download
+bookRouter.route("/download/:id").get(authenticateToken, downloadBookController);
 
 // Book Details routes
 bookRouter.route("/details/:id").get(getBookDetailsController)
+
+bookRouter.route("/analytics/genres").get(authenticateToken, getGenreAnalyticsController);
 
 
 export default bookRouter;

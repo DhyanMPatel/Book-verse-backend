@@ -1,4 +1,5 @@
 import { CategoryModal } from "../modal/categoryModel.js";
+import BookModal from "../modal/bookModal.js";
 import APIResponse from "../utils/APIResponse.js";
 import mongoose from "mongoose";
 
@@ -78,9 +79,9 @@ export const createCategoryController = async (req, res) => {
       201
     );
   } catch (error) {
-    if (error.code === 11000) {
-      return APIResponse.errorResponse(res, "Duplicate category", 400);
-    }
+    // if (error.code === 11000) {
+    // return APIResponse.errorResponse(res, "Duplicate category", 400);
+    // }
 
     return APIResponse.errorResponse(res, error.message, 500);
   }
@@ -138,6 +139,17 @@ export const deleteCategoryController = async (req, res) => {
 
     if (!category) {
       return APIResponse.errorResponse(res, "Category not found", 404);
+    }
+
+    // Check if any books are associated with this category
+    const associatedBooks = await BookModal.findOne({ categoryId });
+
+    if (associatedBooks) {
+      return APIResponse.errorResponse(
+        res,
+        "Cannot delete this category because books are associated with it",
+        400
+      );
     }
 
     await CategoryModal.deleteOne({ _id: categoryId });

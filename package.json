@@ -12,8 +12,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "seed": "node seeders/seed.js",
-    "seed:books": "node seeders/seedBooks.js"
+    "seed": "node seeders/seed.js"
   },
   "author": "",
   "license": "ISC",

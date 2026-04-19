@@ -1,19 +1,18 @@
-import mongoose from "mongoose";
 import BookModal from "../modal/bookModal.js";
-import "dotenv/config";
 
-// Dummy books data
-const books = [
+// Base book data (without dynamic references)
+const baseBooks = [
     {
         title: "The Great Gatsby",
         author: "F. Scott Fitzgerald",
         description: "A classic American novel set in the Jazz Age, exploring themes of wealth, love, and the American Dream through the mysterious Jay Gatsby.",
-        category: "Fiction",
+        categoryName: "fiction",
         price: 12.99,
+        discount: 0,
         stock: 50,
         isbn: "978-0-7432-7356-5",
-        coverImage: "https://example.com/covers/great-gatsby.jpg",
-        fileUrl: "https://example.com/books/great-gatsby.pdf",
+        coverImage: "files/coverImage/psychology-of-money.png",
+        fileUrl: "files/the-psychology-of-money-timeless-lessons-on-wealth-greed-and-happiness-morgan-housel-z-lib.org_.pdf",
         format: "pdf",
         pages: 180,
         language: "English",
@@ -24,12 +23,13 @@ const books = [
         title: "To Kill a Mockingbird",
         author: "Harper Lee",
         description: "A powerful story of racial injustice and childhood innocence in the American South during the 1930s.",
-        category: "Fiction",
+        categoryName: "fiction",
         price: 14.99,
+        discount: 5,
         stock: 75,
         isbn: "978-0-06-112008-4",
-        coverImage: "https://example.com/covers/mockingbird.jpg",
-        fileUrl: "https://example.com/books/mockingbird.pdf",
+        coverImage: "files/coverImage/hidden-hindu.jpeg",
+        fileUrl: "files/the-psychology-of-money-timeless-lessons-on-wealth-greed-and-happiness-morgan-housel-z-lib.org_.pdf",
         format: "pdf",
         pages: 324,
         language: "English",
@@ -40,12 +40,13 @@ const books = [
         title: "1984",
         author: "George Orwell",
         description: "A dystopian social science fiction novel that follows the life of Winston Smith under the totalitarian regime of Big Brother.",
-        category: "Fiction",
+        categoryName: "fiction",
         price: 13.99,
+        discount: 10,
         stock: 60,
         isbn: "978-0-452-28423-4",
-        coverImage: "https://example.com/covers/1984.jpg",
-        fileUrl: "https://example.com/books/1984.pdf",
+        coverImage: "files/coverImage/rich-dad.jpeg",
+        fileUrl: "files/the-psychology-of-money-timeless-lessons-on-wealth-greed-and-happiness-morgan-housel-z-lib.org_.pdf",
         format: "pdf",
         pages: 328,
         language: "English",
@@ -56,12 +57,13 @@ const books = [
         title: "Pride and Prejudice",
         author: "Jane Austen",
         description: "A romantic novel of manners that charts the emotional development of Elizabeth Bennet and her relationship with Mr. Darcy.",
-        category: "Romance",
+        categoryName: "romance",
         price: 11.99,
+        discount: 0,
         stock: 45,
         isbn: "978-0-14-143951-8",
-        coverImage: "https://example.com/covers/pride-prejudice.jpg",
-        fileUrl: "https://example.com/books/pride-prejudice.pdf",
+        coverImage: "files/coverImage/effective-people.jpeg",
+        fileUrl: "files/the-psychology-of-money-timeless-lessons-on-wealth-greed-and-happiness-morgan-housel-z-lib.org_.pdf",
         format: "pdf",
         pages: 432,
         language: "English",
@@ -72,12 +74,13 @@ const books = [
         title: "The Catcher in the Rye",
         author: "J.D. Salinger",
         description: "The story of teenage rebellion and angst, following Holden Caulfield's experiences in New York City after being expelled from prep school.",
-        category: "Fiction",
+        categoryName: "fiction",
         price: 12.99,
+        discount: 0,
         stock: 55,
         isbn: "978-0-316-76948-0",
-        coverImage: "https://example.com/covers/catcher-rye.jpg",
-        fileUrl: "https://example.com/books/catcher-rye.pdf",
+        coverImage: "files/coverImage/atomic-habits.jpeg",
+        fileUrl: "files/the-psychology-of-money-timeless-lessons-on-wealth-greed-and-happiness-morgan-housel-z-lib.org_.pdf",
         format: "pdf",
         pages: 234,
         language: "English",
@@ -88,12 +91,13 @@ const books = [
         title: "Sapiens: A Brief History of Humankind",
         author: "Yuval Noah Harari",
         description: "An exploration of how Homo sapiens came to dominate the world, examining our species' history from the Stone Age to the present.",
-        category: "Non-Fiction",
+        categoryName: "non-fiction",
         price: 18.99,
+        discount: 15,
         stock: 40,
         isbn: "978-0-06-231609-7",
-        coverImage: "https://example.com/covers/sapiens.jpg",
-        fileUrl: "https://example.com/books/sapiens.pdf",
+        coverImage: "files/coverImage/AI.jpeg",
+        fileUrl: "files/the-psychology-of-money-timeless-lessons-on-wealth-greed-and-happiness-morgan-housel-z-lib.org_.pdf",
         format: "pdf",
         pages: 443,
         language: "English",
@@ -104,12 +108,13 @@ const books = [
         title: "The Lean Startup",
         author: "Eric Ries",
         description: "A methodology for developing businesses and products that shortens their development cycles and helps entrepreneurs succeed.",
-        category: "Business",
+        categoryName: "business",
         price: 16.99,
+        discount: 10,
         stock: 35,
         isbn: "978-0-307-88789-4",
-        coverImage: "https://example.com/covers/lean-startup.jpg",
-        fileUrl: "https://example.com/books/lean-startup.pdf",
+        coverImage: "files/coverImage/deep-work.jpeg",
+        fileUrl: "files/the-psychology-of-money-timeless-lessons-on-wealth-greed-and-happiness-morgan-housel-z-lib.org_.pdf",
         format: "pdf",
         pages: 336,
         language: "English",
@@ -120,12 +125,13 @@ const books = [
         title: "Atomic Habits",
         author: "James Clear",
         description: "A comprehensive guide to building good habits and breaking bad ones, with practical strategies for self-improvement.",
-        category: "Self-Help",
+        categoryName: "self-help",
         price: 15.99,
+        discount: 20,
         stock: 65,
         isbn: "978-0-7352-1129-2",
-        coverImage: "https://example.com/covers/atomic-habits.jpg",
-        fileUrl: "https://example.com/books/atomic-habits.pdf",
+        coverImage: "files/coverImage/the-lean-startup.jpeg",
+        fileUrl: "files/the-psychology-of-money-timeless-lessons-on-wealth-greed-and-happiness-morgan-housel-z-lib.org_.pdf",
         format: "pdf",
         pages: 320,
         language: "English",
@@ -136,12 +142,13 @@ const books = [
         title: "The Hobbit",
         author: "J.R.R. Tolkien",
         description: "A fantasy adventure following Bilbo Baggins' journey with dwarves to reclaim their mountain home from the dragon Smaug.",
-        category: "Fantasy",
+        categoryName: "fantasy",
         price: 13.99,
+        discount: 0,
         stock: 70,
         isbn: "978-0-547-92822-7",
-        coverImage: "https://example.com/covers/hobbit.jpg",
-        fileUrl: "https://example.com/books/hobbit.pdf",
+        coverImage: "files/coverImage/zero-to-one.jpeg",
+        fileUrl: "files/the-psychology-of-money-timeless-lessons-on-wealth-greed-and-happiness-morgan-housel-z-lib.org_.pdf",
         format: "pdf",
         pages: 310,
         language: "English",
@@ -152,12 +159,13 @@ const books = [
         title: "A Brief History of Time",
         author: "Stephen Hawking",
         description: "An exploration of cosmology for the general reader, covering the nature of the universe from the Big Bang to black holes.",
-        category: "Science",
+        categoryName: "science",
         price: 14.99,
+        discount: 5,
         stock: 42,
         isbn: "978-0-553-38016-3",
-        coverImage: "https://example.com/covers/brief-history-time.jpg",
-        fileUrl: "https://example.com/books/brief-history-time.pdf",
+        coverImage: "files/coverImage/fast-and-slow.jpeg",
+        fileUrl: "files/the-psychology-of-money-timeless-lessons-on-wealth-greed-and-happiness-morgan-housel-z-lib.org_.pdf",
         format: "pdf",
         pages: 256,
         language: "English",
@@ -166,49 +174,34 @@ const books = [
     }
 ];
 
-// Connect to database
-const connectDB = async () => {
-    try {
-        await mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/bookverse");
-        console.log("✅ Connected to MongoDB");
-    } catch (error) {
-        console.error("❌ MongoDB connection error:", error);
-        process.exit(1);
-    }
+// Build books with proper references
+const buildBooks = (userId, categoryMap) => {
+    return baseBooks.map(book => ({
+        ...book,
+        categoryId: categoryMap[book.categoryName.toLowerCase()],
+        createdBy: userId,
+        updatedBy: userId
+    }));
 };
 
 // Seed books only
-const seedBooksOnly = async () => {
+export const seedBooksOnly = async (userId, categoryMap) => {
     try {
+        if (!userId || !categoryMap) {
+            throw new Error("userId and categoryMap are required");
+        }
+
         // Clear existing books
         await BookModal.deleteMany({});
         console.log("🗑️  Cleared existing books");
 
+        const books = buildBooks(userId, categoryMap);
         await BookModal.insertMany(books);
         console.log(`✅ Created ${books.length} books`);
         console.log("\n📚 Books Categories:");
-        const categories = [...new Set(books.map(book => book.category))];
+        const categories = [...new Set(baseBooks.map(book => book.categoryName))];
         categories.forEach(category => console.log(`📖 ${category}`));
     } catch (error) {
         console.error("❌ Error seeding books:", error);
     }
 };
-
-// Main seeding function
-const seedData = async () => {
-    console.log("🌱 Starting books seeding...");
-    
-    await connectDB();
-    await seedBooksOnly();
-    
-    console.log("✅ Books seeding completed!");
-    
-    await mongoose.disconnect();
-    console.log("🔌 Disconnected from MongoDB");
-};
-
-// Run seeder
-seedData().catch((error) => {
-    console.error("❌ Seeding failed:", error);
-    process.exit(1);
-});

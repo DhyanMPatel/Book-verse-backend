@@ -53,6 +53,11 @@ export const addItemToCartController = async (req, res) => {
                 bookId,
                 title: book.title,
                 price: book.price,
+                coverImage: `${process.env.BASE_URL}/${book.coverImage}`,
+                author: book.author,
+                category: book.categoryId,
+                discount: book.discount,
+                avgRating: book.avgRating,
                 quantity
             });
         }

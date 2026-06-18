@@ -65,6 +65,13 @@ class EmailService {
         }
     }
 
+    /**
+     * Send Welcome email
+     * @param {string} userEmail - Registered email address
+     * @param {string} userName - User's display name
+     * @param {string} exploreLink - Full Explore mode link
+     * @returns {Promise<Object>} - Result of email sending
+     */
     async WelcomeEmail(userEmail, userName, exploreLink) {
         try {
             const templatePath = path.join(__dirname, "..", "templates", "welcomeEmail.pug");
